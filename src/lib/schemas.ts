@@ -19,6 +19,11 @@ export const startChatSchema = z.object({
   jobId: z.string().optional(),
 });
 
+export const interviewRespondSchema = z.object({
+  action: z.enum(["ACCEPT", "DECLINE"]),
+  scheduledFor: z.string().datetime().optional(),
+});
+
 export const workLogSchema = z.object({
   jobId: z.string().min(1),
   hours: z.number().positive().max(24),

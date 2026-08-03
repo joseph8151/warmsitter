@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { deductForAction } from "@/lib/billing";
+import { notify } from "@/lib/notify";
 
 // Step 2 of the flow: parent accepts a sitter's application.
 // Billable action: ACCEPT_APPLICATION.
@@ -43,6 +44,14 @@ export async function POST(
         data: { status: "MATCHED", matchedSitterId: application.sitterId },
       }),
     ]);
+
+    await notify({
+      userId: application.sitterId,
+      type: "APPLICATION_ACCEPTED",
+      title: "지원이 수락되었어요 🎉",
+      body: `"${application.job.title}" 지원이 수락되었습니다. 채팅으로 일정을 확정해보세요.`,
+      link: "/chat",
+    });
 
     return json({ application: updatedApp, deduction });
   } catch (err) {

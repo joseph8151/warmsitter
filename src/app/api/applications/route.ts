@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { applyJobSchema } from "@/lib/schemas";
+import { notify } from "@/lib/notify";
 
 // Sitter applies to a job. Free for the sitter — the parent pays to accept.
 export async function POST(req: Request) {
@@ -23,6 +24,15 @@ export async function POST(req: Request) {
     const application = await prisma.application.create({
       data: { jobId, sitterId: user.id, message, status: "PENDING" },
     });
+
+    await notify({
+      userId: job.parentId,
+      type: "APPLICATION_RECEIVED",
+      title: "새 지원자가 있어요",
+      body: `${user.name}님이 "${job.title}"에 지원했습니다.`,
+      link: `/jobs/${job.id}`,
+    });
+
     return json({ application }, 201);
   } catch (err) {
     return handleError(err);

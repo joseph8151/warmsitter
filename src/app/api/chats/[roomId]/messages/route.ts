@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { messageSchema } from "@/lib/schemas";
+import { notify } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,16 @@ export async function POST(req: Request, { params }: { params: { roomId: string 
       data: { roomId: room.id, senderId: user.id, body },
       include: { sender: { select: { id: true, name: true } } },
     });
+
+    const recipientId = room.parentId === user.id ? room.sitterId : room.parentId;
+    await notify({
+      userId: recipientId,
+      type: "MESSAGE_RECEIVED",
+      title: `${user.name}님의 새 메시지`,
+      body: body.length > 60 ? `${body.slice(0, 60)}…` : body,
+      link: `/chat/${room.id}`,
+    });
+
     return json({ message }, 201);
   } catch (err) {
     return handleError(err);

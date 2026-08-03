@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BalanceBadge } from "./BalanceBadge";
+import { NotificationBell } from "./NotificationBell";
 import { getCurrentUser } from "@/lib/auth";
 
 // Server component shell; the BalanceBadge (client) reads live balance.
@@ -36,6 +37,11 @@ export async function SiteHeader() {
               Chat
             </Link>
           )}
+          {user && (
+            <Link href="/interviews" className="hover:text-sky-600">
+              Interviews
+            </Link>
+          )}
           {user?.role === "SITTER" && (
             <Link href="/profile" className="hover:text-sky-600">
               Profile
@@ -49,6 +55,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {user && <NotificationBell />}
           <BalanceBadge />
           {user ? (
             <form action="/api/auth/signout" method="post">

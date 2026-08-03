@@ -153,6 +153,29 @@ async function main() {
     });
   }
 
+  // A couple of demo notifications for the bell.
+  const noteCount = await prisma.notification.count({ where: { userId: parent1.id } });
+  if (noteCount === 0) {
+    await prisma.notification.createMany({
+      data: [
+        {
+          userId: parent1.id,
+          type: "SYSTEM",
+          title: "warm sitter에 오신 것을 환영해요 ☀️",
+          body: "무료로 시터를 검색하고, 마음에 들면 연결해보세요.",
+          link: "/sitters",
+        },
+        {
+          userId: parent1.id,
+          type: "APPLICATION_RECEIVED",
+          title: "새 지원자가 있어요",
+          body: 'Sofia L.님이 "주말 오전 돌봄 (신생아)"에 지원했습니다.',
+          link: "/jobs/seed-job-2",
+        },
+      ],
+    });
+  }
+
   console.log("Seed complete.");
   console.log("Demo users:");
   console.log("  admin@warmsitter.test (ADMIN)");

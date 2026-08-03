@@ -46,6 +46,14 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **Realtime chat** — `/chat` + `/chat/[roomId]` with **Supabase Realtime (Broadcast)**
   for instant delivery, persisted via `/api/chats/[roomId]/messages`. Falls back to
   4s polling when Supabase isn't configured.
+- **In-app notifications** — a `Notification` model + `notify()` helper fire on new
+  applications, accepts, interview proposals/responses, new messages, settlements, and
+  verification results. Header bell (`/api/notifications`) polls every 30s with an
+  unread badge.
+- **Interview management** — `/interviews` lists proposals; sitters accept/decline and
+  set a time (`/api/interviews/[id]/respond`).
+- **Search** — `/sitters` supports city / max-rate / min-rating / verified filters and
+  pagination; premium sitters get priority placement.
 
 ---
 

@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { verificationReviewSchema } from "@/lib/schemas";
+import { notify } from "@/lib/notify";
 
 // Admin approves / rejects a sitter verification.
 // APPROVE also flips SitterProfile.verified so the "✔ 인증" badge appears.
@@ -25,6 +26,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           data: { verified: true },
         }),
       ]);
+      await notify({
+        userId: v.sitterId,
+        type: "VERIFICATION_RESULT",
+        title: "신원확인이 승인되었어요 ✅",
+        body: "이제 프로필에 인증 뱃지가 표시됩니다.",
+        link: "/profile",
+      });
       return json({ verification: updated });
     }
 
@@ -36,6 +44,13 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         reviewedBy: admin.id,
         rejectionReason,
       },
+    });
+    await notify({
+      userId: v.sitterId,
+      type: "VERIFICATION_RESULT",
+      title: "신원확인이 반려되었어요",
+      body: rejectionReason ? `사유: ${rejectionReason}` : "프로필에서 다시 제출해주세요.",
+      link: "/profile",
     });
     return json({ verification: updated });
   } catch (err) {

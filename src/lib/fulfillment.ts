@@ -2,6 +2,7 @@ import { Prisma, type Payment } from "@prisma/client";
 import { prisma } from "./prisma";
 import { addCredits, grantTicket } from "./billing";
 import { getSettings } from "./settings";
+import { notify } from "./notify";
 import type { CreditPackage } from "./types";
 
 // -----------------------------------------------------------------------------
@@ -92,6 +93,16 @@ export async function fulfillPayment(paymentId: string): Promise<Payment> {
               where: { id: payment.jobId },
               data: { status: "COMPLETED" },
             });
+            await notify(
+              {
+                userId: sitterId,
+                type: "SETTLEMENT_PAID",
+                title: "정산이 등록되었어요 💰",
+                body: `돌봄비 결제가 완료되어 ${(payment.sitterPayout ?? 0).toLocaleString("ko-KR")}원 정산이 대기 중입니다.`,
+                link: "/dashboard",
+              },
+              tx
+            );
           }
         }
         break;
