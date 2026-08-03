@@ -13,9 +13,13 @@ interface NavLink {
 export function MobileNav({
   links,
   loggedIn,
+  loginLabel = "로그인",
+  logoutLabel = "로그아웃",
 }: {
   links: NavLink[];
   loggedIn: boolean;
+  loginLabel?: string;
+  logoutLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const panelRef = useFocusTrap<HTMLElement>(open);
@@ -72,12 +76,12 @@ export function MobileNav({
               {loggedIn ? (
                 <form action="/api/auth/signout" method="post">
                   <button type="submit" className="ws-btn-ghost w-full text-sm">
-                    로그아웃
+                    {logoutLabel}
                   </button>
                 </form>
               ) : (
                 <Link href="/login" onClick={() => setOpen(false)} className="ws-btn-primary w-full text-sm">
-                  로그인
+                  {loginLabel}
                 </Link>
               )}
             </div>

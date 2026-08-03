@@ -1,33 +1,33 @@
 import Link from "next/link";
+import { getDictionary, getLocale } from "@/lib/i18n";
 
 export default function HomePage() {
+  const t = getDictionary(getLocale()).home;
+
   return (
     <div className="space-y-16">
       {/* Hero */}
       <section className="grid items-center gap-8 pt-6 md:grid-cols-2">
         <div>
-          <span className="ws-badge bg-sky-100 text-sky-700">☀️ Trusted local babysitters</span>
+          <span className="ws-badge bg-sky-100 text-sky-700">{t.badge}</span>
           <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
-            Warm, reliable care —
+            {t.heroLine1}
             <br />
-            <span className="text-sky-600">matched with heart.</span>
+            <span className="text-sky-600">{t.heroLine2}</span>
           </h1>
-          <p className="mt-4 max-w-md text-lg text-slate-600">
-            Search sitters for free. You only pay when you reach out, interview, or
-            start chatting — or go unlimited with a 30-day pass.
-          </p>
+          <p className="mt-4 max-w-md text-lg text-slate-600">{t.heroSubtitle}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/sitters" className="ws-btn-primary">
-              Find a sitter
+              {t.findCta}
             </Link>
             <Link href="/pricing" className="ws-btn-ghost">
-              See pricing
+              {t.pricingCta}
             </Link>
           </div>
           <div className="mt-6 flex items-center gap-6 text-sm text-slate-500">
-            <span>✅ Background-checked</span>
-            <span>⭐ 4.9 avg rating</span>
-            <span>🔒 Secure payments</span>
+            <span>{t.trust1}</span>
+            <span>{t.trust2}</span>
+            <span>{t.trust3}</span>
           </div>
         </div>
 
@@ -52,19 +52,19 @@ export default function HomePage() {
 
       {/* How it works */}
       <section>
-        <h2 className="text-center text-2xl font-extrabold text-slate-900">How warm sitter works</h2>
+        <h2 className="text-center text-2xl font-extrabold text-slate-900">{t.howTitle}</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {[
-            { n: "1", t: "Search for free", d: "Browse background-checked sitters near you. No cost to look." },
-            { n: "2", t: "Connect with credits", d: "Spend a credit or ticket to propose an interview, accept, or chat." },
-            { n: "3", t: "Book & pay safely", d: "Confirm hours & rate in chat, then pay securely. The sitter gets paid automatically." },
+            { n: "1", title: t.step1Title, desc: t.step1Desc },
+            { n: "2", title: t.step2Title, desc: t.step2Desc },
+            { n: "3", title: t.step3Title, desc: t.step3Desc },
           ].map((c) => (
             <div key={c.n} className="ws-card p-6">
               <div className="grid h-10 w-10 place-items-center rounded-full bg-sky-500 font-bold text-white">
                 {c.n}
               </div>
-              <p className="mt-3 text-lg font-bold text-slate-900">{c.t}</p>
-              <p className="mt-1 text-slate-600">{c.d}</p>
+              <p className="mt-3 text-lg font-bold text-slate-900">{c.title}</p>
+              <p className="mt-1 text-slate-600">{c.desc}</p>
             </div>
           ))}
         </div>
@@ -74,24 +74,24 @@ export default function HomePage() {
       <section className="ws-card overflow-hidden">
         <div className="grid gap-6 p-8 md:grid-cols-3">
           <div>
-            <p className="text-sm font-semibold text-sky-600">Pay as you go</p>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">Credits</p>
-            <p className="mt-2 text-slate-600">Buy small packs and spend only when you connect.</p>
+            <p className="text-sm font-semibold text-sky-600">{t.teaserCreditsKicker}</p>
+            <p className="mt-1 text-2xl font-extrabold text-slate-900">{t.teaserCredits}</p>
+            <p className="mt-2 text-slate-600">{t.teaserCreditsDesc}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-sky-600">Most popular</p>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">30-day pass</p>
-            <p className="mt-2 text-slate-600">Unlimited proposals, accepts & chats for 30 days.</p>
+            <p className="text-sm font-semibold text-sky-600">{t.teaserPassKicker}</p>
+            <p className="mt-1 text-2xl font-extrabold text-slate-900">{t.teaserPass}</p>
+            <p className="mt-2 text-slate-600">{t.teaserPassDesc}</p>
           </div>
           <div>
-            <p className="text-sm font-semibold text-sunny-500">Premium</p>
-            <p className="mt-1 text-2xl font-extrabold text-slate-900">Membership</p>
-            <p className="mt-2 text-slate-600">Unlimited everything + priority badge & perks.</p>
+            <p className="text-sm font-semibold text-sunny-500">{t.teaserPremiumKicker}</p>
+            <p className="mt-1 text-2xl font-extrabold text-slate-900">{t.teaserPremium}</p>
+            <p className="mt-2 text-slate-600">{t.teaserPremiumDesc}</p>
           </div>
         </div>
         <div className="bg-sky-50 px-8 py-4 text-center">
           <Link href="/pricing" className="ws-btn-primary">
-            View all plans
+            {t.viewPlans}
           </Link>
         </div>
       </section>

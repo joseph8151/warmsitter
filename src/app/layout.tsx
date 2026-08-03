@@ -3,6 +3,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BillingProvider } from "@/components/BillingProvider";
 import { PwaManager } from "@/components/PwaManager";
+import { getDictionary, getLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "warm sitter — Trusted babysitters, warmly matched",
@@ -32,8 +33,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const locale = getLocale();
+  const dict = getDictionary(locale);
   return (
-    <html lang="ko">
+    <html lang={locale}>
       <body>
         <a href="#main" className="skip-link">
           본문 바로가기
@@ -44,7 +47,7 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="border-t border-sky-100 bg-white/60 py-8 text-center text-sm text-slate-500">
-            <p>warm sitter · Free to search — pay only when you connect.</p>
+            <p>{dict.footer.tagline}</p>
           </footer>
           <PwaManager />
         </BillingProvider>

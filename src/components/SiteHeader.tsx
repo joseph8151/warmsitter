@@ -2,22 +2,26 @@ import Link from "next/link";
 import { BalanceBadge } from "./BalanceBadge";
 import { NotificationBell } from "./NotificationBell";
 import { MobileNav } from "./MobileNav";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 import { getCurrentUser } from "@/lib/auth";
+import { getDictionary, getLocale } from "@/lib/i18n";
 
 // Server component shell; the BalanceBadge (client) reads live balance.
 export async function SiteHeader() {
   const user = await getCurrentUser();
+  const locale = getLocale();
+  const t = getDictionary(locale).nav;
 
   // Links shown in both the desktop nav and the mobile sheet.
   const links = [
-    { href: "/sitters", label: "Find sitters" },
-    { href: "/jobs", label: "Jobs" },
-    { href: "/pricing", label: "Pricing" },
-    ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
-    ...(user ? [{ href: "/chat", label: "Chat" }] : []),
-    ...(user ? [{ href: "/interviews", label: "Interviews" }] : []),
-    ...(user?.role === "SITTER" ? [{ href: "/profile", label: "Profile" }] : []),
-    ...(user?.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
+    { href: "/sitters", label: t.findSitters },
+    { href: "/jobs", label: t.jobs },
+    { href: "/pricing", label: t.pricing },
+    ...(user ? [{ href: "/dashboard", label: t.dashboard }] : []),
+    ...(user ? [{ href: "/chat", label: t.chat }] : []),
+    ...(user ? [{ href: "/interviews", label: t.interviews }] : []),
+    ...(user?.role === "SITTER" ? [{ href: "/profile", label: t.profile }] : []),
+    ...(user?.role === "ADMIN" ? [{ href: "/admin", label: t.admin }] : []),
   ];
 
   return (
@@ -49,22 +53,30 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <div className="hidden sm:block">
+            <LocaleSwitcher locale={locale} />
+          </div>
           {user && <NotificationBell />}
           <BalanceBadge />
           <div className="hidden md:block">
             {user ? (
               <form action="/api/auth/signout" method="post">
                 <button type="submit" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-                  로그아웃
+                  {t.logout}
                 </button>
               </form>
             ) : (
               <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-                로그인
+                {t.login}
               </Link>
             )}
           </div>
-          <MobileNav links={links} loggedIn={Boolean(user)} />
+          <MobileNav
+            links={links}
+            loggedIn={Boolean(user)}
+            loginLabel={t.login}
+            logoutLabel={t.logout}
+          />
         </div>
       </div>
     </header>
