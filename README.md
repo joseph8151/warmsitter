@@ -161,7 +161,7 @@ swap in any auth provider.
 ## Scripts
 - `npm run dev` / `build` / `start`
 - `npm run typecheck` — `tsc --noEmit`
-- `npm test` — Vitest unit tests (fee split, entitlement helpers)
+- `npm test` — Vitest unit tests (fee split, entitlement, settlement transitions, subscription periods)
 - `npm run db:seed` — seed demo data
 - `npm run prisma:migrate` — run migrations
 

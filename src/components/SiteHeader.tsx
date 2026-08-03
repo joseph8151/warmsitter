@@ -1,11 +1,24 @@
 import Link from "next/link";
 import { BalanceBadge } from "./BalanceBadge";
 import { NotificationBell } from "./NotificationBell";
+import { MobileNav } from "./MobileNav";
 import { getCurrentUser } from "@/lib/auth";
 
 // Server component shell; the BalanceBadge (client) reads live balance.
 export async function SiteHeader() {
   const user = await getCurrentUser();
+
+  // Links shown in both the desktop nav and the mobile sheet.
+  const links = [
+    { href: "/sitters", label: "Find sitters" },
+    { href: "/jobs", label: "Jobs" },
+    { href: "/pricing", label: "Pricing" },
+    ...(user ? [{ href: "/dashboard", label: "Dashboard" }] : []),
+    ...(user ? [{ href: "/chat", label: "Chat" }] : []),
+    ...(user ? [{ href: "/interviews", label: "Interviews" }] : []),
+    ...(user?.role === "SITTER" ? [{ href: "/profile", label: "Profile" }] : []),
+    ...(user?.role === "ADMIN" ? [{ href: "/admin", label: "Admin" }] : []),
+  ];
 
   return (
     <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur">
@@ -20,54 +33,38 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-          <Link href="/sitters" className="hover:text-sky-600">
-            Find sitters
-          </Link>
-          <Link href="/jobs" className="hover:text-sky-600">
-            Jobs
-          </Link>
-          <Link href="/pricing" className="hover:text-sky-600">
-            Pricing
-          </Link>
-          <Link href="/dashboard" className="hover:text-sky-600">
-            Dashboard
-          </Link>
-          {user && (
-            <Link href="/chat" className="hover:text-sky-600">
-              Chat
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={
+                l.href === "/admin"
+                  ? "font-semibold text-sky-600 hover:text-sky-700"
+                  : "hover:text-sky-600"
+              }
+            >
+              {l.label}
             </Link>
-          )}
-          {user && (
-            <Link href="/interviews" className="hover:text-sky-600">
-              Interviews
-            </Link>
-          )}
-          {user?.role === "SITTER" && (
-            <Link href="/profile" className="hover:text-sky-600">
-              Profile
-            </Link>
-          )}
-          {user?.role === "ADMIN" && (
-            <Link href="/admin" className="font-semibold text-sky-600 hover:text-sky-700">
-              Admin
-            </Link>
-          )}
+          ))}
         </nav>
 
         <div className="flex items-center gap-3">
           {user && <NotificationBell />}
           <BalanceBadge />
-          {user ? (
-            <form action="/api/auth/signout" method="post">
-              <button type="submit" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-                로그아웃
-              </button>
-            </form>
-          ) : (
-            <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-              로그인
-            </Link>
-          )}
+          <div className="hidden md:block">
+            {user ? (
+              <form action="/api/auth/signout" method="post">
+                <button type="submit" className="text-sm font-medium text-slate-500 hover:text-sky-600">
+                  로그아웃
+                </button>
+              </form>
+            ) : (
+              <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-sky-600">
+                로그인
+              </Link>
+            )}
+          </div>
+          <MobileNav links={links} loggedIn={Boolean(user)} />
         </div>
       </div>
     </header>

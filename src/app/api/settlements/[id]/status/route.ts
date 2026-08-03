@@ -2,17 +2,10 @@ import { requireRole } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { settlementStatusSchema } from "@/lib/schemas";
-import type { SettlementStatus } from "@prisma/client";
+import { canTransitionSettlement } from "@/lib/settlement-status";
 
 // Advance a settlement through its lifecycle: PENDING -> PAID -> COMPLETED.
 // Admin-only (a real payout system would trigger PAID from a bank transfer job).
-const ALLOWED: Record<SettlementStatus, SettlementStatus[]> = {
-  PENDING: ["PAID", "CANCELED"],
-  PAID: ["COMPLETED"],
-  COMPLETED: [],
-  CANCELED: [],
-};
-
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
@@ -24,7 +17,7 @@ export async function POST(
     const settlement = await prisma.settlement.findUnique({ where: { id: params.id } });
     if (!settlement) return json({ error: "NOT_FOUND" }, 404);
 
-    if (!ALLOWED[settlement.status].includes(status)) {
+    if (!canTransitionSettlement(settlement.status, status)) {
       return json(
         { error: "INVALID_TRANSITION", from: settlement.status, to: status },
         409

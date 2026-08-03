@@ -7,6 +7,7 @@ import { PayButton } from "@/components/PayButton";
 import { WorkLogForm } from "@/components/WorkLogForm";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { ReviewForm } from "@/components/ReviewForm";
+import { GettingStarted, type ChecklistItem } from "@/components/GettingStarted";
 
 export const dynamic = "force-dynamic";
 
@@ -83,11 +84,32 @@ export default async function DashboardPage() {
     })
     .filter((v): v is { jobId: string; title: string; targetId: string; targetName: string } => Boolean(v));
 
+  // Role-based onboarding checklist.
+  const checklist: ChecklistItem[] = [];
+  if (user.role === "PARENT") {
+    const hasBalance = user.creditBalance > 0 || hasActiveTicket(user) || user.isPremium;
+    const jobCount = await prisma.jobPost.count({ where: { parentId: user.id } });
+    checklist.push(
+      { label: "마음에 드는 시터 찾기", done: false, href: "/sitters", cta: "검색" },
+      { label: "이용권 또는 크레딧 준비하기", done: hasBalance, href: "/pricing", cta: "구매" },
+      { label: "돌봄 구인글 올리기", done: jobCount > 0, href: "/jobs/new", cta: "작성" }
+    );
+  } else if (user.role === "SITTER") {
+    const profile = await prisma.sitterProfile.findUnique({ where: { userId: user.id } });
+    checklist.push(
+      { label: "프로필 사진 등록하기", done: Boolean(profile?.photoUrl), href: "/profile", cta: "등록" },
+      { label: "신원확인 받기", done: Boolean(profile?.verified), href: "/profile", cta: "인증" },
+      { label: "구인글에 지원하기", done: false, href: "/jobs", cta: "둘러보기" }
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-extrabold text-slate-900">
         안녕하세요, {user.name}님 👋
       </h1>
+
+      {checklist.length > 0 && <GettingStarted items={checklist} />}
 
       {/* Balance summary */}
       <div className="grid gap-4 sm:grid-cols-3">

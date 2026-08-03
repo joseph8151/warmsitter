@@ -3,7 +3,20 @@ import { prisma } from "./prisma";
 import { getSettings } from "./settings";
 import { chargeBillingKey, newOrderId, TossError } from "./toss";
 
-const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+export const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
+
+// Pure period math for a subscription charge.
+// - First charge anchors to `now`.
+// - Renewals append a month to `currentPeriodEnd`, so 12 monthly charges equal
+//   exactly 12 months with no drift and no lost days if the cron runs late.
+export function computeNextPeriod(
+  currentPeriodEnd: Date,
+  now: Date,
+  first: boolean
+): { periodStart: Date; periodEnd: Date } {
+  const anchor = first ? now : currentPeriodEnd;
+  return { periodStart: anchor, periodEnd: new Date(anchor.getTime() + MONTH_MS) };
+}
 
 /**
  * Charge a subscription's stored billing key for one month and extend the
@@ -48,10 +61,7 @@ export async function chargeAndExtend(
     });
 
     const now = new Date();
-    // Extend from the later of now / current period end (no lost days).
-    const base = sub.currentPeriodEnd > now ? sub.currentPeriodEnd : now;
-    const periodStart = opts.first ? now : sub.currentPeriodEnd;
-    const periodEnd = new Date(base.getTime() + MONTH_MS);
+    const { periodStart, periodEnd } = computeNextPeriod(sub.currentPeriodEnd, now, Boolean(opts.first));
 
     await prisma.$transaction([
       prisma.payment.update({
