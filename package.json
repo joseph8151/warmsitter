@@ -9,9 +9,14 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=18.18.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

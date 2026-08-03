@@ -15,7 +15,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Pooled connection used at runtime (e.g. Neon/Supabase pgBouncer pooler).
+  url       = env("DATABASE_URL")
+  // Direct (unpooled) connection used for migrations. Set it equal to
+  // DATABASE_URL when you are not behind a connection pooler.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
