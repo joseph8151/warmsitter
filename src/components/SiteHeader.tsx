@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { BalanceBadge } from "./BalanceBadge";
+import { getCurrentUser } from "@/lib/auth";
 
 // Server component shell; the BalanceBadge (client) reads live balance.
-export function SiteHeader() {
+export async function SiteHeader() {
+  const user = await getCurrentUser();
+
   return (
     <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
@@ -25,9 +28,27 @@ export function SiteHeader() {
           <Link href="/dashboard" className="hover:text-sky-600">
             Dashboard
           </Link>
+          {user?.role === "SITTER" && (
+            <Link href="/profile" className="hover:text-sky-600">
+              Profile
+            </Link>
+          )}
         </nav>
 
-        <BalanceBadge />
+        <div className="flex items-center gap-3">
+          <BalanceBadge />
+          {user ? (
+            <form action="/api/auth/signout" method="post">
+              <button type="submit" className="text-sm font-medium text-slate-500 hover:text-sky-600">
+                로그아웃
+              </button>
+            </form>
+          ) : (
+            <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-sky-600">
+              로그인
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );

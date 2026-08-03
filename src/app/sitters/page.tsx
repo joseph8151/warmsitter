@@ -37,6 +37,7 @@ export default async function SittersPage() {
                 hourlyRate: s.hourlyRate,
                 city: s.city ?? "",
                 yearsOfExp: s.yearsOfExp,
+                photoUrl: s.photoUrl,
                 verified: s.verified,
                 ratingAvg: s.ratingAvg,
                 ratingCount: s.ratingCount,

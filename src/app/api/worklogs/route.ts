@@ -7,7 +7,7 @@ import { workLogSchema } from "@/lib/schemas";
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
-    const { jobId, hours, note } = workLogSchema.parse(await req.json());
+    const { jobId, hours, note, imageUrl } = workLogSchema.parse(await req.json());
 
     const job = await prisma.jobPost.findUnique({ where: { id: jobId } });
     if (!job) return json({ error: "JOB_NOT_FOUND" }, 404);
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     const log = await prisma.workLog.create({
-      data: { jobId, sitterId: user.id, hours, note, status: "SUBMITTED" },
+      data: { jobId, sitterId: user.id, hours, note, imageUrl, status: "SUBMITTED" },
     });
     await prisma.jobPost.update({
       where: { id: jobId },

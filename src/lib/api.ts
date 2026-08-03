@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { AuthError } from "./auth";
 import { InsufficientCreditError } from "./billing";
 import { TossError } from "./toss";
+import { UploadError } from "./storage";
 
 export function json<T>(data: T, init?: number | ResponseInit) {
   const responseInit = typeof init === "number" ? { status: init } : init;
@@ -31,6 +32,9 @@ export function handleError(err: unknown) {
   }
   if (err instanceof TossError) {
     return json({ error: "PAYMENT_ERROR", code: err.code, message: err.message }, 400);
+  }
+  if (err instanceof UploadError) {
+    return json({ error: "UPLOAD_ERROR", message: err.message }, err.status);
   }
   // eslint-disable-next-line no-console
   console.error("[api] unhandled error", err);

@@ -12,6 +12,7 @@ interface Sitter {
   hourlyRate: number;
   city: string;
   yearsOfExp: number;
+  photoUrl: string | null;
   verified: boolean;
   ratingAvg: number;
   ratingCount: number;
@@ -55,8 +56,13 @@ export function SitterCard({ sitter }: { sitter: Sitter }) {
     <div className="ws-card flex flex-col p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-sky-100 text-2xl">
-            {sitter.name.charAt(0)}
+          <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-sky-100 text-2xl">
+            {sitter.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sitter.photoUrl} alt={sitter.name} className="h-full w-full object-cover" />
+            ) : (
+              sitter.name.charAt(0)
+            )}
           </div>
           <div>
             <p className="font-bold text-slate-900">

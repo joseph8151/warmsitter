@@ -124,6 +124,8 @@ model User {
   email     String   @unique
   name      String
   role      UserRole @default(PARENT)
+  // Supabase Auth user id (auth.users.id). Null for demo/seed users.
+  authId    String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -176,6 +178,8 @@ model SitterProfile {
   hourlyRate   Int      @default(15000) // KRW per hour, the sitter's asking rate
   yearsOfExp   Int      @default(0)
   city         String?
+  // Public URL of the profile photo stored in Supabase Storage (avatars bucket).
+  photoUrl     String?
   verified     Boolean  @default(false)
   ratingAvg    Float    @default(0)
   ratingCount  Int      @default(0)
@@ -400,6 +404,8 @@ model WorkLog {
   // Reported hours worked in this session.
   hours     Float
   note      String?
+  // Optional photo (e.g. activity snapshot) stored in Supabase Storage (worklogs bucket).
+  imageUrl  String?
   status    WorkLogStatus @default(SUBMITTED)
   createdAt DateTime      @default(now())
 }

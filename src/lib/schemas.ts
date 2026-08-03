@@ -23,6 +23,7 @@ export const workLogSchema = z.object({
   jobId: z.string().min(1),
   hours: z.number().positive().max(24),
   note: z.string().max(2000).optional(),
+  imageUrl: z.string().url().optional(),
 });
 
 export const payCareSchema = z.object({

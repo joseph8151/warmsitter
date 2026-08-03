@@ -115,9 +115,20 @@ Open http://localhost:3000, then `/login` to pick a demo user:
 | `premium-parent@warmsitter.test` | PARENT | premium — no deductions |
 | `emma@…`, `sofia@…`, `grace@…`, `mia@…` | SITTER | seeded sitters |
 
-### Auth note
-Authentication is a **demo stub** (`src/lib/auth.ts` reads a `ws_uid` cookie). Replace
-with NextAuth/Clerk/your own — the app only depends on `getCurrentUser()`/`requireUser()`.
+### Auth & Storage (Supabase)
+- **Auth** — when `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set,
+  `src/lib/auth.ts` derives the current user from the **Supabase Auth** session and
+  provisions the matching Prisma `User` just-in-time (linked by `authId`, then by
+  email so seeded users attach on first login). Session refresh is handled in
+  `src/middleware.ts`. `/login` shows a real email login/signup form.
+- **Fallback** — with Supabase unset, the app uses the **demo stub** (`ws_uid` cookie /
+  demo user-picker) so it runs locally with zero config.
+- **Storage** — sitter profile photos and work-log images upload to **Supabase
+  Storage** via `POST /api/uploads` (server-side, service-role key). URLs are saved to
+  `SitterProfile.photoUrl` / `WorkLog.imageUrl`.
+
+The rest of the app only depends on `getCurrentUser()` / `requireUser()`, so you can
+swap in any auth provider.
 
 ## Scripts
 - `npm run dev` / `build` / `start`

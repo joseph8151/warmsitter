@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { hasActiveTicket } from "@/lib/billing";
 import { won, formatDate } from "@/lib/format";
 import { PayButton } from "@/components/PayButton";
+import { WorkLogForm } from "@/components/WorkLogForm";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,16 @@ export default async function DashboardPage() {
     }),
   ]);
 
+  // Jobs the current user is the matched sitter for (to write work logs).
+  const sitterJobs =
+    user.role === "SITTER"
+      ? await prisma.jobPost.findMany({
+          where: { matchedSitterId: user.id, status: { in: ["MATCHED", "IN_PROGRESS"] } },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+        })
+      : [];
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-extrabold text-slate-900">
@@ -56,6 +67,20 @@ export default async function DashboardPage() {
         />
         <StatCard label="멤버십" value={user.isPremium ? "★ Premium" : "일반"} />
       </div>
+
+      {/* Sitter: active jobs — write work logs (with photo upload) */}
+      {sitterJobs.length > 0 && (
+        <section className="ws-card p-5">
+          <h2 className="font-bold text-slate-900">근무일지 작성</h2>
+          <div className="mt-3 space-y-4">
+            {sitterJobs.map((j) => (
+              <div key={j.id} className="rounded-xl bg-sky-50 p-4">
+                <WorkLogForm jobId={j.id} jobTitle={j.title} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Care jobs awaiting payment (parent) */}
       {jobs.length > 0 && (

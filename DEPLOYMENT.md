@@ -20,8 +20,7 @@ matching MCP connectors (Vercel, Supabase/Neon, GitHub) at
 2. **Project Settings → Database → Connection string**:
    - Transaction pooler (port `6543`, add `?pgbouncer=true`) → `DATABASE_URL`
    - Direct connection (port `5432`) → `DIRECT_URL`
-3. Bonus: Supabase Auth can replace the demo auth stub (`src/lib/auth.ts`), and
-   Supabase Storage can hold sitter photos / work-log images.
+3. Supabase Auth + Storage are wired in (see the section below).
 
 Run the migrations against the new database:
 
@@ -72,6 +71,35 @@ DATABASE_URL=... DIRECT_URL=... npm run db:seed   # optional demo data
    - fail → `/billing/result?status=fail`
 
 ---
+
+## 3b. Supabase Auth + Storage
+
+Set these env vars (Vercel + `.env`):
+
+| Key | Where |
+|-----|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page (anon/public key) |
+| `SUPABASE_SERVICE_ROLE_KEY` | same page (service_role — **server only**) |
+| `SUPABASE_AVATARS_BUCKET` | default `avatars` |
+| `SUPABASE_WORKLOGS_BUCKET` | default `worklogs` |
+
+**Auth**
+1. Supabase → Authentication → Providers → enable **Email**.
+2. Add your site URL + `.../auth/callback` under Authentication → URL Configuration
+   (redirect allow-list). For email confirmation flows, set the Site URL to
+   `NEXT_PUBLIC_BASE_URL`.
+3. On first login the app auto-creates the Prisma `User` (JIT provisioning). Seeded
+   users link automatically when their email matches.
+
+**Storage**
+1. Supabase → Storage → create two buckets: **`avatars`** and **`worklogs`**.
+2. Mark them **public** (read) so the saved public URLs render. Uploads go through
+   the server route with the service-role key, so no client write policy is needed.
+3. Uploads: `POST /api/uploads` (multipart `kind` + `file`), max 5 MB, images only.
+
+> If the Supabase vars are omitted, the app falls back to the demo auth stub and the
+> upload endpoint returns `503` — everything else keeps working.
 
 ## 4. Cron (expiry notifications)
 
