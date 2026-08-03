@@ -67,7 +67,8 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 
 ## Matching flow (with hybrid billing integrated)
 
-1. **Free search** — `GET /sitters` (`/api/settings/public` for prices).
+1. **Free search / job board** — `/sitters` to browse, or `/jobs` where parents post
+   (`POST /api/jobs`) and sitters apply for free (`POST /api/applications`).
 2. **Connect** — `POST /api/interviews`, `POST /api/applications/:id/accept`,
    `POST /api/chats`. Each calls `deductForAction()`:
    - premium/ticket → pass through (no charge),

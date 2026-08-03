@@ -110,6 +110,32 @@ async function main() {
     update: {},
   });
 
+  // An OPEN job with a pending application from Sofia (to demo the apply/accept flow).
+  const sofia = sitterUsers[1];
+  await prisma.jobPost.upsert({
+    where: { id: "seed-job-2" },
+    create: {
+      id: "seed-job-2",
+      parentId: parent1.id,
+      title: "주말 오전 돌봄 (신생아)",
+      description: "토요일 오전 9시~12시, 신생아 돌봄 경험자 우대",
+      city: "Seoul",
+      hoursPerSession: 3,
+      status: "OPEN",
+    },
+    update: {},
+  });
+  await prisma.application.upsert({
+    where: { jobId_sitterId: { jobId: "seed-job-2", sitterId: sofia.id } },
+    create: {
+      jobId: "seed-job-2",
+      sitterId: sofia.id,
+      message: "신생아 돌봄 3년 경력입니다. 잘 부탁드려요!",
+      status: "PENDING",
+    },
+    update: {},
+  });
+
   // A demo chat room between parent1 and Emma with a couple of messages.
   const room = await prisma.chatRoom.upsert({
     where: { parentId_sitterId_jobId: { parentId: parent1.id, sitterId: emma.id, jobId: "seed-job-1" } },

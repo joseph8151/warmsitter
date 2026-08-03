@@ -22,6 +22,9 @@ export async function SiteHeader() {
           <Link href="/sitters" className="hover:text-sky-600">
             Find sitters
           </Link>
+          <Link href="/jobs" className="hover:text-sky-600">
+            Jobs
+          </Link>
           <Link href="/pricing" className="hover:text-sky-600">
             Pricing
           </Link>

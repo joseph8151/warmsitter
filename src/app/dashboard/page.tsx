@@ -6,6 +6,7 @@ import { won, formatDate } from "@/lib/format";
 import { PayButton } from "@/components/PayButton";
 import { WorkLogForm } from "@/components/WorkLogForm";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
+import { ReviewForm } from "@/components/ReviewForm";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,36 @@ export default async function DashboardPage() {
         })
       : [];
 
+  // Completed jobs the user took part in — offer a review of the other party
+  // (step 6). Hide jobs this user already reviewed.
+  const completedJobs = await prisma.jobPost.findMany({
+    where: { status: "COMPLETED", OR: [{ parentId: user.id }, { matchedSitterId: user.id }] },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      parent: { select: { id: true, name: true } },
+      reviews: { where: { authorId: user.id }, select: { id: true } },
+    },
+    take: 10,
+  });
+  // Resolve matched-sitter names (matchedSitterId is a plain id, not a relation).
+  const sitterIdSet = Array.from(
+    new Set(completedJobs.map((j) => j.matchedSitterId).filter((v): v is string => Boolean(v)))
+  );
+  const sitterNameById = new Map(
+    (await prisma.user.findMany({ where: { id: { in: sitterIdSet } }, select: { id: true, name: true } })).map(
+      (u) => [u.id, u.name]
+    )
+  );
+  const reviewable = completedJobs
+    .filter((j) => j.reviews.length === 0)
+    .map((j) => {
+      const asParent = j.parentId === user.id;
+      const targetId = asParent ? j.matchedSitterId : j.parentId;
+      const targetName = asParent ? sitterNameById.get(j.matchedSitterId ?? "") ?? "시터" : j.parent.name;
+      return targetId ? { jobId: j.id, title: j.title, targetId, targetName } : null;
+    })
+    .filter((v): v is { jobId: string; title: string; targetId: string; targetName: string } => Boolean(v));
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-extrabold text-slate-900">
@@ -68,6 +99,21 @@ export default async function DashboardPage() {
         />
         <StatCard label="멤버십" value={user.isPremium ? "★ Premium" : "일반"} />
       </div>
+
+      {/* Reviews for completed jobs (step 6) */}
+      {reviewable.length > 0 && (
+        <section className="ws-card p-5">
+          <h2 className="font-bold text-slate-900">리뷰 작성</h2>
+          <div className="mt-3 space-y-4">
+            {reviewable.map((r) => (
+              <div key={r.jobId} className="rounded-xl bg-sky-50 p-4">
+                <p className="mb-2 text-sm text-slate-500">{r.title}</p>
+                <ReviewForm jobId={r.jobId} targetId={r.targetId} targetName={r.targetName} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Premium membership management */}
       <SubscriptionManager />

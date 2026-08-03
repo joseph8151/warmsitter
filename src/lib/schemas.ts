@@ -83,3 +83,15 @@ export const verificationReviewSchema = z.object({
 export const messageSchema = z.object({
   body: z.string().min(1).max(4000),
 });
+
+export const createJobSchema = z.object({
+  title: z.string().min(2).max(120),
+  description: z.string().max(2000).optional(),
+  city: z.string().max(80).optional(),
+  hoursPerSession: z.number().positive().max(24).optional(),
+});
+
+export const applyJobSchema = z.object({
+  jobId: z.string().min(1),
+  message: z.string().max(1000).optional(),
+});
