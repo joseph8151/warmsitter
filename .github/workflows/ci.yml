@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values so `next build` and `prisma generate` succeed without secrets.
+      # No migrations/queries run in CI, so these are never connected to.
+      DATABASE_URL: postgresql://user:pass@localhost:5432/warmsitter
+      DIRECT_URL: postgresql://user:pass@localhost:5432/warmsitter
+      NEXT_PUBLIC_TOSS_CLIENT_KEY: test_ck_ci
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # `npm ci` triggers postinstall -> `prisma generate`.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build

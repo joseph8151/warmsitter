@@ -105,8 +105,13 @@ it, and `BillingProvider.runBillable()` opens `InsufficientCreditModal`, then th
 
 ## Admin console
 
-`/admin/settings` (ADMIN role) edits fee rate, ticket price/duration, credit packages,
-premium price, and per-action credit cost via `GET/PUT /api/admin/settings`.
+`/admin` (ADMIN role) is a unified dashboard: revenue metrics (platform fees,
+ticket/credit/subscription revenue, premium members, active tickets, sitter payouts)
+plus work queues:
+- `/admin/settings` — fee rate, ticket price/duration, credit packages, premium price,
+  per-action credit cost (`GET/PUT /api/admin/settings`).
+- `/admin/verifications` — review sitter identity documents.
+- `/admin/settlements` — advance sitter payouts `pending → paid → completed`.
 
 ---
 
@@ -147,8 +152,13 @@ swap in any auth provider.
 ## Scripts
 - `npm run dev` / `build` / `start`
 - `npm run typecheck` — `tsc --noEmit`
+- `npm test` — Vitest unit tests (fee split, entitlement helpers)
 - `npm run db:seed` — seed demo data
 - `npm run prisma:migrate` — run migrations
+
+## CI
+`.github/workflows/ci.yml` runs typecheck → tests → build on every push to `main`
+and every PR (uses dummy env vars; no DB connection needed).
 
 ## Tech
 Next.js 14 · TypeScript · Prisma (PostgreSQL) · Tailwind · Zod · Toss Payments

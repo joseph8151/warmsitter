@@ -38,6 +38,11 @@ export async function SiteHeader() {
               Profile
             </Link>
           )}
+          {user?.role === "ADMIN" && (
+            <Link href="/admin" className="font-semibold text-sky-600 hover:text-sky-700">
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
