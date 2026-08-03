@@ -32,7 +32,20 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 ### 3) Premium subscription (optional)
 - Monthly plan: **unlimited proposals + priority badge + perks**.
 - Subscribers bypass all deductions (`user.isPremium`).
-- Recurring billing via Toss billing keys (`chargeBillingKey`).
+- **Recurring billing via Toss billing keys**: the billing-auth widget registers a
+  card → `issueBillingKey` exchanges the authKey for a durable `billingKey` →
+  `chargeAndExtend` charges the first month and activates. A daily cron
+  (`/api/cron/subscriptions`) renews due subscriptions and expires canceled ones
+  (`src/lib/subscriptions.ts`). Cancel-at-period-end via `/api/subscription/cancel`.
+
+### Plus
+- **Sitter verification (신원확인)** — sitters upload an ID document to a **private**
+  Storage bucket; an admin reviews it at `/admin/verifications` and, on approval,
+  flips `SitterProfile.verified` (the "✔ 인증" badge). Docs are viewed via short-lived
+  signed URLs. Models: `SitterVerification`.
+- **Realtime chat** — `/chat` + `/chat/[roomId]` with **Supabase Realtime (Broadcast)**
+  for instant delivery, persisted via `/api/chats/[roomId]/messages`. Falls back to
+  4s polling when Supabase isn't configured.
 
 ---
 
@@ -46,6 +59,7 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 | `Subscription` | Premium membership (Toss billing key) |
 | `Payment` | Care fee + fee split, and credit/ticket/subscription purchases |
 | `Settlement` | Sitter payout (`pending → paid → completed`) |
+| `SitterVerification` | Identity verification submissions (`pending → approved/rejected`) |
 | `PlatformSetting` | Admin-editable fee rate, ticket/credit prices, action costs |
 | `JobPost`, `Application`, `Interview`, `ChatRoom`, `Message`, `WorkLog`, `Review` | Matching flow |
 

@@ -110,6 +110,23 @@ async function main() {
     update: {},
   });
 
+  // A demo chat room between parent1 and Emma with a couple of messages.
+  const room = await prisma.chatRoom.upsert({
+    where: { parentId_sitterId_jobId: { parentId: parent1.id, sitterId: emma.id, jobId: "seed-job-1" } },
+    create: { id: "seed-room-1", parentId: parent1.id, sitterId: emma.id, jobId: "seed-job-1" },
+    update: {},
+  });
+  const existingMsgs = await prisma.message.count({ where: { roomId: room.id } });
+  if (existingMsgs === 0) {
+    await prisma.message.createMany({
+      data: [
+        { roomId: room.id, senderId: parent1.id, body: "안녕하세요! 화요일 오후 돌봄 가능하실까요?" },
+        { roomId: room.id, senderId: emma.id, body: "네, 가능합니다 😊 시급은 18,000원이에요." },
+        { roomId: room.id, senderId: parent1.id, body: "좋아요, 3시간으로 진행할게요!" },
+      ],
+    });
+  }
+
   console.log("Seed complete.");
   console.log("Demo users:");
   console.log("  admin@warmsitter.test (ADMIN)");

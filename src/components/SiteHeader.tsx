@@ -28,6 +28,11 @@ export async function SiteHeader() {
           <Link href="/dashboard" className="hover:text-sky-600">
             Dashboard
           </Link>
+          {user && (
+            <Link href="/chat" className="hover:text-sky-600">
+              Chat
+            </Link>
+          )}
           {user?.role === "SITTER" && (
             <Link href="/profile" className="hover:text-sky-600">
               Profile

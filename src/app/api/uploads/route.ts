@@ -1,17 +1,21 @@
 import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
-import { uploadImage, UploadError, type UploadKind } from "@/lib/storage";
+import { uploadFile, UploadError, type UploadKind } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
+const VALID_KINDS: UploadKind[] = ["avatar", "worklog", "verification"];
+
 // Multipart upload endpoint.
-//   field `kind`: "avatar" | "worklog"
-//   field `file`: the image
+//   field `kind`: "avatar" | "worklog" | "verification"
+//   field `file`: the image (verification also accepts PDF)
 //
-// - avatar  → uploads and sets the sitter's SitterProfile.photoUrl.
-// - worklog → uploads and returns the URL; the client attaches it when creating
-//             the work log (POST /api/worklogs { imageUrl }).
+// - avatar       → uploads and sets the sitter's SitterProfile.photoUrl.
+// - worklog      → returns the URL; the client attaches it when creating the
+//                  work log (POST /api/worklogs { imageUrl }).
+// - verification → uploads to the private bucket; returns { path } which the
+//                  client submits to POST /api/verification.
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
@@ -19,14 +23,14 @@ export async function POST(req: Request) {
     const kind = String(form.get("kind") ?? "") as UploadKind;
     const file = form.get("file");
 
-    if (kind !== "avatar" && kind !== "worklog") {
+    if (!VALID_KINDS.includes(kind)) {
       throw new UploadError("잘못된 업로드 종류입니다.");
     }
     if (!(file instanceof File)) {
       throw new UploadError("파일이 없습니다.");
     }
 
-    const { url, path } = await uploadImage({ kind, ownerId: user.id, file });
+    const { url, path } = await uploadFile({ kind, ownerId: user.id, file });
 
     if (kind === "avatar") {
       await prisma.sitterProfile.update({

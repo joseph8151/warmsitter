@@ -21,6 +21,14 @@ interface TossPaymentsInstance {
       failUrl: string;
     }
   ): Promise<void>;
+  requestBillingAuth(
+    method: "카드" | "CARD" | string,
+    options: {
+      customerKey: string;
+      successUrl: string;
+      failUrl: string;
+    }
+  ): Promise<void>;
 }
 
 let loaderPromise: Promise<void> | null = null;
@@ -64,6 +72,26 @@ export async function openTossCheckout(params: CheckoutParams): Promise<void> {
     orderName: params.orderName,
     customerName: params.customerName,
     successUrl: `${base}/api/payments/confirm`,
+    failUrl: `${base}/billing/result?status=fail`,
+  });
+}
+
+// Open the Toss billing-auth window to register a card for recurring charges.
+// On success Toss redirects to /api/subscription/billing/confirm with
+// { customerKey, authKey }.
+export async function openTossBillingAuth(params: {
+  clientKey: string;
+  customerKey: string;
+}): Promise<void> {
+  await loadScript();
+  if (!window.TossPayments) throw new Error("Toss SDK unavailable");
+
+  const base = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+  const toss = window.TossPayments(params.clientKey);
+
+  await toss.requestBillingAuth("CARD", {
+    customerKey: params.customerKey,
+    successUrl: `${base}/api/subscription/billing/confirm`,
     failUrl: `${base}/billing/result?status=fail`,
   });
 }

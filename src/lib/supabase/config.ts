@@ -7,6 +7,8 @@ export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?
 
 export const AVATARS_BUCKET = process.env.SUPABASE_AVATARS_BUCKET ?? "avatars";
 export const WORKLOGS_BUCKET = process.env.SUPABASE_WORKLOGS_BUCKET ?? "worklogs";
+// Private bucket for identity documents — must NOT be public.
+export const VERIFICATIONS_BUCKET = process.env.SUPABASE_VERIFICATIONS_BUCKET ?? "verifications";
 
 // Auth/session features require the public URL + anon key.
 export const isSupabaseAuthEnabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);

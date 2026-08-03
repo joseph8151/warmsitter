@@ -8,7 +8,7 @@ export function ImageUploader({
   onUploaded,
   label = "이미지 선택",
 }: {
-  kind: "avatar" | "worklog";
+  kind: "avatar" | "worklog" | "verification";
   onUploaded: (url: string) => void;
   label?: string;
 }) {

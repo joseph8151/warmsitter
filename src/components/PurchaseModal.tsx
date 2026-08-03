@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
-import { openTossCheckout } from "@/lib/client/toss";
+import { openTossCheckout, openTossBillingAuth } from "@/lib/client/toss";
 import type { CreditPackage } from "@/lib/types";
 import { Modal } from "./Modal";
 import { won } from "@/lib/format";
@@ -46,6 +46,24 @@ export function PurchaseModal({
       .then(setSettings)
       .catch(() => setError("가격 정보를 불러오지 못했습니다."));
   }, []);
+
+  // Premium: register a card for recurring billing (Toss billing key).
+  async function subscribePremium() {
+    setBusy("premium");
+    setError(null);
+    try {
+      const res = await api<{ customerKey: string; clientKey: string }>(
+        "/api/subscription/billing/issue",
+        { method: "POST" }
+      );
+      await openTossBillingAuth({ clientKey: res.clientKey, customerKey: res.customerKey });
+      // Toss redirects to /api/subscription/billing/confirm.
+    } catch (e: any) {
+      setError(e?.message ?? "구독을 시작하지 못했습니다.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function checkout(endpoint: string, body?: object) {
     setBusy(endpoint);
@@ -154,11 +172,12 @@ export function PurchaseModal({
           </p>
           <button
             disabled={busy !== null}
-            onClick={() => checkout("/api/purchase/subscription")}
+            onClick={subscribePremium}
             className="ws-btn-accent mt-5 w-full"
           >
-            {busy ? "이동 중…" : "프리미엄 시작하기"}
+            {busy === "premium" ? "이동 중…" : "프리미엄 정기결제 시작"}
           </button>
+          <p className="mt-2 text-xs text-slate-400">매월 자동 결제 · 언제든 해지 가능</p>
         </div>
       )}
 

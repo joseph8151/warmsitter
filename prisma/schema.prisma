@@ -115,6 +115,12 @@ enum WorkLogStatus {
   DISPUTED
 }
 
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 // ---------------------------------------------------------------------------
 // Core users & profiles
 // ---------------------------------------------------------------------------
@@ -159,6 +165,8 @@ model User {
 
   reviewsWritten Review[] @relation("ReviewAuthor")
   reviewsGot     Review[] @relation("ReviewTarget")
+
+  verifications SitterVerification[] @relation("SitterVerifications")
 }
 
 model ParentProfile {
@@ -423,6 +431,29 @@ model Review {
   createdAt DateTime @default(now())
 
   @@unique([jobId, authorId])
+}
+
+// ---------------------------------------------------------------------------
+// Sitter identity verification (신원확인) — sitter submits an ID document to a
+// private Storage bucket; an admin reviews it and, on approval, flips
+// SitterProfile.verified so the "✔ 인증" badge shows.
+// ---------------------------------------------------------------------------
+
+model SitterVerification {
+  id              String             @id @default(cuid())
+  sitterId        String
+  sitter          User               @relation("SitterVerifications", fields: [sitterId], references: [id], onDelete: Cascade)
+  status          VerificationStatus @default(PENDING)
+  legalName       String?
+  // Path (not a public URL) in the private `verifications` bucket. Admins view
+  // it via a short-lived signed URL.
+  documentPath    String
+  submittedAt     DateTime           @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  rejectionReason String?
+
+  @@index([status, submittedAt])
 }
 
 // ---------------------------------------------------------------------------

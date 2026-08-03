@@ -104,6 +104,27 @@ export function cancelPayment(args: {
   });
 }
 
+export interface TossBillingAuth {
+  billingKey: string;
+  customerKey: string;
+  card?: { company?: string; number?: string };
+  [key: string]: unknown;
+}
+
+/**
+ * Exchange the `authKey` from the billing-auth widget for a durable billingKey.
+ * POST /v1/billing/authorizations/issue
+ */
+export function issueBillingKey(args: {
+  authKey: string;
+  customerKey: string;
+}): Promise<TossBillingAuth> {
+  return tossFetch<TossBillingAuth>("/billing/authorizations/issue", {
+    method: "POST",
+    body: JSON.stringify(args),
+  });
+}
+
 /**
  * Charge a stored billing key (recurring subscription).
  * See https://docs.tosspayments.com/guides/v2/billing/integration

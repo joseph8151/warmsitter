@@ -93,10 +93,21 @@ Set these env vars (Vercel + `.env`):
    users link automatically when their email matches.
 
 **Storage**
-1. Supabase → Storage → create two buckets: **`avatars`** and **`worklogs`**.
-2. Mark them **public** (read) so the saved public URLs render. Uploads go through
-   the server route with the service-role key, so no client write policy is needed.
-3. Uploads: `POST /api/uploads` (multipart `kind` + `file`), max 5 MB, images only.
+1. Supabase → Storage → create buckets:
+   - **`avatars`** and **`worklogs`** → **public** (read).
+   - **`verifications`** → **private** (identity documents; never public).
+2. Uploads go through the server route with the service-role key, so no client
+   write policy is needed. Verification docs are viewed by admins via short-lived
+   signed URLs.
+3. Uploads: `POST /api/uploads` (multipart `kind` + `file`), max 5 MB. `avatar`/
+   `worklog` accept images; `verification` also accepts PDF.
+
+**Recurring subscriptions (Toss billing key)**
+1. Enable **billing (자동결제)** for your Toss merchant.
+2. The premium button opens the billing-auth widget → `/api/subscription/billing/confirm`
+   issues the billing key and charges the first month.
+3. The daily cron `/api/cron/subscriptions` (in `vercel.json`) renews due
+   subscriptions and expires canceled ones. It is secured by `CRON_SECRET`.
 
 > If the Supabase vars are omitted, the app falls back to the demo auth stub and the
 > upload endpoint returns `503` — everything else keeps working.

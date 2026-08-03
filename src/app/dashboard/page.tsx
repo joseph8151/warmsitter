@@ -5,6 +5,7 @@ import { hasActiveTicket } from "@/lib/billing";
 import { won, formatDate } from "@/lib/format";
 import { PayButton } from "@/components/PayButton";
 import { WorkLogForm } from "@/components/WorkLogForm";
+import { SubscriptionManager } from "@/components/SubscriptionManager";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,9 @@ export default async function DashboardPage() {
         />
         <StatCard label="멤버십" value={user.isPremium ? "★ Premium" : "일반"} />
       </div>
+
+      {/* Premium membership management */}
+      <SubscriptionManager />
 
       {/* Sitter: active jobs — write work logs (with photo upload) */}
       {sitterJobs.length > 0 && (

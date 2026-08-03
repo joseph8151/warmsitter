@@ -43,13 +43,16 @@ export function SitterCard({ sitter }: { sitter: Sitter }) {
     setBusy("chat");
     setStatus(null);
     const res = await runBillable(() =>
-      api("/api/chats", {
+      api<{ room: { id: string } }>("/api/chats", {
         method: "POST",
         body: JSON.stringify({ sitterId: sitter.id }),
       })
     );
     setBusy(null);
-    if (res) setStatus("채팅방이 열렸어요! 💬");
+    if (res?.room) {
+      setStatus("채팅방이 열렸어요! 💬 이동 중…");
+      window.location.href = `/chat/${res.room.id}`;
+    }
   }
 
   return (

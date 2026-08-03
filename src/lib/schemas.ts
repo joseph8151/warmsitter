@@ -69,3 +69,17 @@ export const adminSettingsSchema = z.object({
 export const settlementStatusSchema = z.object({
   status: z.enum(["PAID", "COMPLETED", "CANCELED"]),
 });
+
+export const verificationSubmitSchema = z.object({
+  legalName: z.string().min(1).max(100).optional(),
+  documentPath: z.string().min(1),
+});
+
+export const verificationReviewSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  rejectionReason: z.string().max(500).optional(),
+});
+
+export const messageSchema = z.object({
+  body: z.string().min(1).max(4000),
+});

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { VerificationPanel } from "@/components/VerificationPanel";
 import { won } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,11 @@ export default async function ProfilePage() {
       <section className="ws-card p-6">
         <h2 className="mb-4 font-bold text-slate-900">프로필 사진</h2>
         <AvatarUploader initialUrl={profile?.photoUrl ?? null} name={user.name} />
+      </section>
+
+      <section className="ws-card p-6">
+        <h2 className="mb-4 font-bold text-slate-900">신원확인</h2>
+        <VerificationPanel />
       </section>
 
       <section className="ws-card p-6">
