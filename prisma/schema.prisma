@@ -1,0 +1,444 @@
+// warm sitter — Prisma schema
+//
+// Hybrid revenue model:
+//   1) Tickets / Credits   — parents buy a 30-day pass or credit packs; spent on
+//                            interview proposals, application acceptance, first chat.
+//   2) Transaction fee     — platform fee auto-deducted when a parent pays for care.
+//   3) Premium subscription — unlimited proposals + priority badge; bypasses deduction.
+//
+// Provider is Postgres in production. For quick local trials you can switch
+// `provider` to "sqlite" and set DATABASE_URL="file:./dev.db".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  PARENT
+  SITTER
+  ADMIN
+}
+
+// What a spent credit / ticck action was for. Also used for pricing lookups.
+enum BillableAction {
+  INTERVIEW_PROPOSAL // parent proposes an interview to a sitter
+  ACCEPT_APPLICATION // parent accepts a sitter's application
+  START_CHAT         // parent starts the first chat with a sitter
+}
+
+enum CreditTxnType {
+  PURCHASE   // bought a credit package (+)
+  SPEND      // spent on a billable action (-)
+  REFUND     // refunded (+)
+  ADJUSTMENT // admin manual adjustment (+/-)
+}
+
+enum TicketStatus {
+  ACTIVE
+  EXPIRED
+  REFUNDED
+}
+
+enum SubscriptionPlan {
+  PREMIUM_MONTHLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+// Payment for a confirmed care job (care fee + platform fee).
+enum PaymentStatus {
+  PENDING   // created, awaiting Toss confirmation
+  PAID      // parent paid successfully
+  CANCELED
+  FAILED
+  REFUNDED
+}
+
+// Sitter payout lifecycle: pending -> paid -> completed.
+enum SettlementStatus {
+  PENDING   // parent paid; awaiting payout window (e.g. care completion)
+  PAID      // transferred to the sitter
+  COMPLETED // reconciled / closed
+  CANCELED
+}
+
+enum PaymentPurpose {
+  CARE_FEE     // parent paying for a care job
+  CREDIT_PACK  // buying credits
+  TICKET       // buying a 30-day pass
+  SUBSCRIPTION // premium subscription charge
+}
+
+enum JobStatus {
+  OPEN
+  MATCHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewStatus {
+  PROPOSED
+  ACCEPTED
+  DECLINED
+  DONE
+}
+
+enum WorkLogStatus {
+  SUBMITTED
+  APPROVED
+  DISPUTED
+}
+
+// ---------------------------------------------------------------------------
+// Core users & profiles
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      UserRole @default(PARENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ---- Hybrid revenue: balances stored directly on the user ----
+  // Credit balance in whole credits.
+  creditBalance Int @default(0)
+  // 30-day pass expiry. Null / past => no active ticket.
+  ticketExpiresAt DateTime?
+  // Denormalized flag kept in sync with the active premium subscription,
+  // for fast "is premium?" checks in the matching flow.
+  isPremium Boolean @default(false)
+
+  parentProfile ParentProfile?
+  sitterProfile SitterProfile?
+
+  tickets       Ticket[]
+  creditTxns    CreditTransaction[]
+  subscription  Subscription?
+  payments      Payment[]           @relation("PayerPayments")
+
+  jobPosts     JobPost[]     @relation("ParentJobs")
+  applications Application[] @relation("SitterApplications")
+  interviewsProposed Interview[] @relation("ParentInterviews")
+  interviewsReceived Interview[] @relation("SitterInterviews")
+
+  chatRoomsAsParent ChatRoom[] @relation("ParentChats")
+  chatRoomsAsSitter ChatRoom[] @relation("SitterChats")
+  messages          Message[]
+
+  settlements Settlement[] @relation("SitterSettlements")
+
+  reviewsWritten Review[] @relation("ReviewAuthor")
+  reviewsGot     Review[] @relation("ReviewTarget")
+}
+
+model ParentProfile {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone    String?
+  address  String?
+  children Int     @default(1)
+}
+
+model SitterProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String?
+  hourlyRate   Int      @default(15000) // KRW per hour, the sitter's asking rate
+  yearsOfExp   Int      @default(0)
+  city         String?
+  verified     Boolean  @default(false)
+  ratingAvg    Float    @default(0)
+  ratingCount  Int      @default(0)
+}
+
+// ---------------------------------------------------------------------------
+// 1) Tickets & Credits
+// ---------------------------------------------------------------------------
+
+model Ticket {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    TicketStatus @default(ACTIVE)
+  // 30-day pass window.
+  startsAt  DateTime     @default(now())
+  expiresAt DateTime
+  pricePaid Int          // KRW actually paid
+  paymentId String?      @unique
+  payment   Payment?     @relation(fields: [paymentId], references: [id])
+  createdAt DateTime     @default(now())
+
+  @@index([userId, status])
+}
+
+model CreditTransaction {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      CreditTxnType
+  // Signed amount: +N for purchase/refund, -N for spend.
+  amount    Int
+  // Running balance after this transaction (audit trail).
+  balanceAfter Int
+  action    BillableAction? // set for SPEND transactions
+  reason    String?
+  // Links a SPEND to the thing it unlocked, for idempotency.
+  refType   String?
+  refId     String?
+  paymentId String?
+  payment   Payment?       @relation(fields: [paymentId], references: [id])
+  createdAt DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  // Prevent double-charging the same action for the same reference.
+  @@unique([userId, action, refType, refId])
+}
+
+// ---------------------------------------------------------------------------
+// 3) Premium subscription
+// ---------------------------------------------------------------------------
+
+model Subscription {
+  id                  String             @id @default(cuid())
+  userId              String             @unique
+  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                SubscriptionPlan   @default(PREMIUM_MONTHLY)
+  status              SubscriptionStatus @default(ACTIVE)
+  // Toss billing key (for recurring charges) + customer key.
+  billingKey          String?
+  customerKey         String?
+  currentPeriodStart  DateTime           @default(now())
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  payments Payment[] @relation("SubscriptionPayments")
+}
+
+// ---------------------------------------------------------------------------
+// 2) Payments & Settlements
+// ---------------------------------------------------------------------------
+
+model Payment {
+  id            String         @id @default(cuid())
+  // Parent (payer).
+  userId        String
+  user          User           @relation("PayerPayments", fields: [userId], references: [id])
+  purpose       PaymentPurpose
+  status        PaymentStatus  @default(PENDING)
+
+  // Toss identifiers.
+  orderId       String         @unique // our order id, sent to Toss
+  paymentKey    String?        @unique // Toss paymentKey after confirm
+  method        String?
+
+  // Money (KRW). For CARE_FEE: amount = careFee, and platformFee/sitterPayout are set.
+  amount        Int            // total charged to the parent
+  careFee       Int?           // hourlyRate * hours (before fee split)
+  platformFee   Int?           // platform cut
+  feeRateBps    Int?           // fee rate applied, in basis points (e.g. 1000 = 10%)
+  sitterPayout  Int?           // amount owed to the sitter
+
+  // Links for the different purposes.
+  jobId         String?
+  job           JobPost?       @relation(fields: [jobId], references: [id])
+  subscriptionId String?
+  subscription  Subscription?  @relation("SubscriptionPayments", fields: [subscriptionId], references: [id])
+
+  ticket        Ticket?
+  creditTxns    CreditTransaction[]
+  settlement    Settlement?
+
+  rawWebhook    Json?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId, purpose, status])
+}
+
+model Settlement {
+  id           String           @id @default(cuid())
+  paymentId    String           @unique
+  payment      Payment          @relation(fields: [paymentId], references: [id])
+  sitterId     String
+  sitter       User             @relation("SitterSettlements", fields: [sitterId], references: [id])
+  jobId        String?
+  job          JobPost?         @relation(fields: [jobId], references: [id])
+
+  grossAmount  Int              // care fee
+  platformFee  Int              // platform cut
+  netAmount    Int              // paid out to the sitter
+  status       SettlementStatus @default(PENDING)
+
+  paidAt       DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([sitterId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Matching flow
+// ---------------------------------------------------------------------------
+
+model JobPost {
+  id         String    @id @default(cuid())
+  parentId   String
+  parent     User      @relation("ParentJobs", fields: [parentId], references: [id])
+  title      String
+  description String?
+  city       String?
+  hoursPerSession Float @default(3)
+  status     JobStatus @default(OPEN)
+  // Sitter chosen for this job (after acceptance).
+  matchedSitterId String?
+  agreedRate      Int?  // agreed hourly rate (KRW) settled in chat
+  agreedHours     Float? // agreed total hours
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  applications Application[]
+  interviews   Interview[]
+  chatRooms    ChatRoom[]
+  workLogs     WorkLog[]
+  payments     Payment[]
+  settlements  Settlement[]
+  reviews      Review[]
+
+  @@index([status])
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  jobId     String
+  job       JobPost           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sitterId  String
+  sitter    User              @relation("SitterApplications", fields: [sitterId], references: [id])
+  message   String?
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+
+  @@unique([jobId, sitterId])
+}
+
+model Interview {
+  id        String          @id @default(cuid())
+  jobId     String?
+  job       JobPost?        @relation(fields: [jobId], references: [id])
+  parentId  String
+  parent    User            @relation("ParentInterviews", fields: [parentId], references: [id])
+  sitterId  String
+  sitter    User            @relation("SitterInterviews", fields: [sitterId], references: [id])
+  proposedAt DateTime       @default(now())
+  scheduledFor DateTime?
+  status    InterviewStatus @default(PROPOSED)
+}
+
+model ChatRoom {
+  id        String    @id @default(cuid())
+  jobId     String?
+  job       JobPost?  @relation(fields: [jobId], references: [id])
+  parentId  String
+  parent    User      @relation("ParentChats", fields: [parentId], references: [id])
+  sitterId  String
+  sitter    User      @relation("SitterChats", fields: [sitterId], references: [id])
+  createdAt DateTime  @default(now())
+  messages  Message[]
+
+  @@unique([parentId, sitterId, jobId])
+}
+
+model Message {
+  id       String   @id @default(cuid())
+  roomId   String
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User     @relation(fields: [senderId], references: [id])
+  body     String
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+model WorkLog {
+  id        String        @id @default(cuid())
+  jobId     String
+  job       JobPost       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sitterId  String
+  // Reported hours worked in this session.
+  hours     Float
+  note      String?
+  status    WorkLogStatus @default(SUBMITTED)
+  createdAt DateTime      @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  jobId     String
+  job       JobPost  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId  String
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  rating    Int      // 1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, authorId])
+}
+
+// ---------------------------------------------------------------------------
+// Admin-editable platform settings (fee rate, ticket/credit prices, ...)
+// Single-row table (id = "singleton").
+// ---------------------------------------------------------------------------
+
+model PlatformSetting {
+  id        String   @id @default("singleton")
+
+  // Transaction fee rate in basis points. 1000 = 10%.
+  feeRateBps Int     @default(1000)
+
+  // 30-day ticket price (KRW).
+  ticketPrice        Int @default(29000)
+  ticketDurationDays Int @default(30)
+
+  // Credit package definitions (JSON): [{ id, credits, price, label }]
+  creditPackages Json @default("[]")
+
+  // Per-action credit cost (JSON): { INTERVIEW_PROPOSAL: 1, ACCEPT_APPLICATION: 2, START_CHAT: 1 }
+  actionCosts Json @default("{}")
+
+  // Premium subscription monthly price (KRW).
+  premiumMonthlyPrice Int @default(9900)
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}

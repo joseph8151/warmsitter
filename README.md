@@ -1,0 +1,129 @@
+# warm sitter ☀️
+
+A babysitter matching platform (US-style, sky-blue) with a **hybrid revenue model**:
+tickets/credits, transaction fees, and premium subscriptions — built on Next.js 14
+(App Router) + TypeScript + Prisma + Tailwind, with **Toss Payments** integration.
+
+> Free to search — pay only when you connect.
+
+---
+
+## The hybrid revenue model
+
+### 1) Tickets / Credits
+- Parents buy a **30-day pass** (`Ticket`) or a **credit package** (`CreditTransaction`).
+- Credits/tickets are **spent on billable actions**:
+  - `INTERVIEW_PROPOSAL` — propose an interview to a sitter
+  - `ACCEPT_APPLICATION` — accept a sitter's application
+  - `START_CHAT` — start the first chat with a sitter
+- Balances live directly on the `User` model: `creditBalance`, `ticketExpiresAt`, `isPremium`.
+- Coverage order: **premium → active ticket → credits**. A ticket holder inside the
+  30-day window and a premium member pay **no per-action deduction**.
+- Expiry reminders: `src/lib/notifications.ts` powers the in-app banner and a daily
+  cron (`/api/cron/expiry`, wired in `vercel.json`).
+
+### 2) Transaction fee
+- When a parent pays for confirmed care, the **platform fee** (default **10%**, admin-
+  adjustable) is auto-deducted.
+- `sitter payout = agreed hourly rate × hours − platform fee`.
+- Split is computed in `computeFeeSplit()` and stored on the `Payment`; a `Settlement`
+  is created on success with lifecycle **`pending → paid → completed`**.
+
+### 3) Premium subscription (optional)
+- Monthly plan: **unlimited proposals + priority badge + perks**.
+- Subscribers bypass all deductions (`user.isPremium`).
+- Recurring billing via Toss billing keys (`chargeBillingKey`).
+
+---
+
+## Prisma models
+
+| Model | Purpose |
+|-------|---------|
+| `User` | Balances (`creditBalance`, `ticketExpiresAt`, `isPremium`), roles |
+| `Ticket` | 30-day pass records |
+| `CreditTransaction` | Credit ledger (purchase / spend / refund / adjustment) with running balance + idempotency |
+| `Subscription` | Premium membership (Toss billing key) |
+| `Payment` | Care fee + fee split, and credit/ticket/subscription purchases |
+| `Settlement` | Sitter payout (`pending → paid → completed`) |
+| `PlatformSetting` | Admin-editable fee rate, ticket/credit prices, action costs |
+| `JobPost`, `Application`, `Interview`, `ChatRoom`, `Message`, `WorkLog`, `Review` | Matching flow |
+
+---
+
+## Matching flow (with hybrid billing integrated)
+
+1. **Free search** — `GET /sitters` (`/api/settings/public` for prices).
+2. **Connect** — `POST /api/interviews`, `POST /api/applications/:id/accept`,
+   `POST /api/chats`. Each calls `deductForAction()`:
+   - premium/ticket → pass through (no charge),
+   - credits → `-cost`,
+   - insufficient → **HTTP 402 `INSUFFICIENT_CREDIT`** → the frontend opens the
+     **"이용권이 부족합니다"** modal → purchase page.
+3. **Confirm schedule & rate in chat** — `JobPost.agreedRate/agreedHours`.
+4. **Care happens; sitter logs work** — `POST /api/worklogs`.
+5. **Parent pays** — `POST /api/jobs/:id/pay` builds the fee split and returns Toss
+   checkout params. On success, `fulfillPayment()` creates the sitter `Settlement`.
+6. **Reviews** — `POST /api/reviews`.
+
+### Insufficient-balance handling
+`src/lib/api.ts` maps `InsufficientCreditError → 402`. The client `api()` wrapper flags
+it, and `BillingProvider.runBillable()` opens `InsufficientCreditModal`, then the
+`PurchaseModal`. **Premium users never hit the 402 path** (branch in `deductForAction`).
+
+---
+
+## Toss Payments integration
+
+- **Server client** — `src/lib/toss.ts`: `confirmPayment`, `getPayment`, `cancelPayment`,
+  `chargeBillingKey`.
+- **Browser** — `src/lib/client/toss.ts` loads the SDK and opens the checkout window.
+- **Confirm redirect** — `GET /api/payments/confirm` verifies the amount matches the
+  order (anti-tampering), calls Toss confirm with the secret key, then fulfills.
+- **Webhook** — `POST /api/payments/webhook` verifies the signature, re-fetches the
+  payment from Toss as the source of truth, and maps `DONE → fulfill`,
+  `CANCELED/EXPIRED → fail`. Fulfillment is idempotent (safe on retries).
+
+> Swap in 아임포트(Iamport)/PortOne by replacing `src/lib/toss.ts` and the two routes —
+> the fulfillment layer is provider-agnostic.
+
+---
+
+## Admin console
+
+`/admin/settings` (ADMIN role) edits fee rate, ticket price/duration, credit packages,
+premium price, and per-action credit cost via `GET/PUT /api/admin/settings`.
+
+---
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env          # fill in DATABASE_URL + Toss keys
+npx prisma migrate dev --name init
+npm run db:seed               # demo users, sitters, a matched job
+npm run dev
+```
+
+Open http://localhost:3000, then `/login` to pick a demo user:
+
+| User | Role | Notes |
+|------|------|-------|
+| `admin@warmsitter.test` | ADMIN | opens `/admin/settings` |
+| `parent@warmsitter.test` | PARENT | 3 credits — try proposing/chatting |
+| `premium-parent@warmsitter.test` | PARENT | premium — no deductions |
+| `emma@…`, `sofia@…`, `grace@…`, `mia@…` | SITTER | seeded sitters |
+
+### Auth note
+Authentication is a **demo stub** (`src/lib/auth.ts` reads a `ws_uid` cookie). Replace
+with NextAuth/Clerk/your own — the app only depends on `getCurrentUser()`/`requireUser()`.
+
+## Scripts
+- `npm run dev` / `build` / `start`
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run db:seed` — seed demo data
+- `npm run prisma:migrate` — run migrations
+
+## Tech
+Next.js 14 · TypeScript · Prisma (PostgreSQL) · Tailwind · Zod · Toss Payments

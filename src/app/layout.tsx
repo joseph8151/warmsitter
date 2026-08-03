@@ -1,0 +1,30 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import { SiteHeader } from "@/components/SiteHeader";
+import { BillingProvider } from "@/components/BillingProvider";
+
+export const metadata: Metadata = {
+  title: "warm sitter — Trusted babysitters, warmly matched",
+  description:
+    "Find and book caring, background-checked babysitters. Free to search — pay only when you connect.",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <BillingProvider>
+          <SiteHeader />
+          <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">{children}</main>
+          <footer className="border-t border-sky-100 bg-white/60 py-8 text-center text-sm text-slate-500">
+            <p>warm sitter · Free to search — pay only when you connect.</p>
+          </footer>
+        </BillingProvider>
+      </body>
+    </html>
+  );
+}

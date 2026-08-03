@@ -1,0 +1,127 @@
+import { PrismaClient } from "@prisma/client";
+import { DEFAULT_ACTION_COSTS, DEFAULT_CREDIT_PACKAGES } from "../src/lib/settings";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  // Platform settings singleton.
+  await prisma.platformSetting.upsert({
+    where: { id: "singleton" },
+    create: {
+      id: "singleton",
+      feeRateBps: 1000, // 10%
+      ticketPrice: 29000,
+      ticketDurationDays: 30,
+      premiumMonthlyPrice: 9900,
+      creditPackages: DEFAULT_CREDIT_PACKAGES as unknown as object,
+      actionCosts: DEFAULT_ACTION_COSTS as unknown as object,
+    },
+    update: {},
+  });
+
+  // Admin.
+  await prisma.user.upsert({
+    where: { email: "admin@warmsitter.test" },
+    create: { email: "admin@warmsitter.test", name: "Admin", role: "ADMIN", creditBalance: 0 },
+    update: {},
+  });
+
+  // Parents.
+  const parent1 = await prisma.user.upsert({
+    where: { email: "parent@warmsitter.test" },
+    create: {
+      email: "parent@warmsitter.test",
+      name: "지현 (부모)",
+      role: "PARENT",
+      creditBalance: 3, // a few credits to try the flow
+      parentProfile: { create: { children: 2, address: "Seoul" } },
+    },
+    update: {},
+  });
+
+  await prisma.user.upsert({
+    where: { email: "premium-parent@warmsitter.test" },
+    create: {
+      email: "premium-parent@warmsitter.test",
+      name: "민수 (프리미엄 부모)",
+      role: "PARENT",
+      creditBalance: 0,
+      isPremium: true,
+      parentProfile: { create: { children: 1, address: "Busan" } },
+      subscription: {
+        create: {
+          plan: "PREMIUM_MONTHLY",
+          status: "ACTIVE",
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      },
+    },
+    update: {},
+  });
+
+  // Sitters.
+  const sitters = [
+    { email: "emma@warmsitter.test", name: "Emma R.", rate: 18000, exp: 5, city: "Seoul", bio: "CPR certified, loves crafts and story time.", verified: true, rating: 4.9, count: 42 },
+    { email: "sofia@warmsitter.test", name: "Sofia L.", rate: 15000, exp: 3, city: "Seoul", bio: "Toddler specialist, bilingual (EN/KR).", verified: true, rating: 4.8, count: 28 },
+    { email: "grace@warmsitter.test", name: "Grace K.", rate: 20000, exp: 7, city: "Busan", bio: "Newborn & infant care, night nanny experience.", verified: true, rating: 5.0, count: 61 },
+    { email: "mia@warmsitter.test", name: "Mia T.", rate: 16000, exp: 2, city: "Incheon", bio: "After-school pickups and homework help.", verified: false, rating: 4.6, count: 12 },
+  ];
+  const sitterUsers = [];
+  for (const s of sitters) {
+    const u = await prisma.user.upsert({
+      where: { email: s.email },
+      create: {
+        email: s.email,
+        name: s.name,
+        role: "SITTER",
+        sitterProfile: {
+          create: {
+            hourlyRate: s.rate,
+            yearsOfExp: s.exp,
+            city: s.city,
+            bio: s.bio,
+            verified: s.verified,
+            ratingAvg: s.rating,
+            ratingCount: s.count,
+          },
+        },
+      },
+      update: {},
+    });
+    sitterUsers.push(u);
+  }
+
+  // A sample job by parent1, matched with Emma, ready to demonstrate payment.
+  const emma = sitterUsers[0];
+  await prisma.jobPost.upsert({
+    where: { id: "seed-job-1" },
+    create: {
+      id: "seed-job-1",
+      parentId: parent1.id,
+      title: "화요일 오후 돌봄 (2명)",
+      description: "하교 후 픽업 + 저녁 돌봄",
+      city: "Seoul",
+      hoursPerSession: 3,
+      status: "MATCHED",
+      matchedSitterId: emma.id,
+      agreedRate: 18000,
+      agreedHours: 3,
+    },
+    update: {},
+  });
+
+  console.log("Seed complete.");
+  console.log("Demo users:");
+  console.log("  admin@warmsitter.test (ADMIN)");
+  console.log("  parent@warmsitter.test (PARENT, 3 credits)");
+  console.log("  premium-parent@warmsitter.test (PARENT, premium)");
+  console.log("  emma/sofia/grace/mia@warmsitter.test (SITTERS)");
+}
+
+main()
+  .then(() => prisma.$disconnect())
+  .catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

@@ -1,0 +1,161 @@
+import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { hasActiveTicket } from "@/lib/billing";
+import { won, formatDate } from "@/lib/format";
+import { PayButton } from "@/components/PayButton";
+
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return (
+      <div className="ws-card mx-auto max-w-md p-10 text-center">
+        <p className="text-slate-600">로그인이 필요합니다.</p>
+        <Link href="/login" className="ws-btn-primary mt-4 inline-flex">
+          데모 로그인
+        </Link>
+      </div>
+    );
+  }
+
+  const [txns, settlements, jobs] = await Promise.all([
+    prisma.creditTransaction.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    prisma.settlement.findMany({
+      where: { sitterId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      include: { job: true },
+    }),
+    prisma.jobPost.findMany({
+      where: { parentId: user.id, status: { in: ["MATCHED", "IN_PROGRESS"] } },
+      orderBy: { createdAt: "desc" },
+      include: { workLogs: true },
+      take: 10,
+    }),
+  ]);
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-extrabold text-slate-900">
+        안녕하세요, {user.name}님 👋
+      </h1>
+
+      {/* Balance summary */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="크레딧 잔액" value={`${user.creditBalance}`} suffix="크레딧" />
+        <StatCard
+          label="이용권"
+          value={hasActiveTicket(user) ? "활성" : "없음"}
+          suffix={user.ticketExpiresAt ? `~ ${formatDate(user.ticketExpiresAt)}` : ""}
+        />
+        <StatCard label="멤버십" value={user.isPremium ? "★ Premium" : "일반"} />
+      </div>
+
+      {/* Care jobs awaiting payment (parent) */}
+      {jobs.length > 0 && (
+        <section className="ws-card p-5">
+          <h2 className="font-bold text-slate-900">돌봄 결제</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            근무일지를 확인한 뒤 결제하면 수수료가 자동 차감되어 시터에게 정산됩니다.
+          </p>
+          <div className="mt-3 space-y-3">
+            {jobs.map((j) => {
+              const loggedHours = j.workLogs.reduce((sum, w) => sum + w.hours, 0);
+              return (
+                <div
+                  key={j.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-sky-50 p-4"
+                >
+                  <div>
+                    <p className="font-bold text-slate-900">{j.title}</p>
+                    <p className="text-sm text-slate-500">
+                      합의 시급 {won(j.agreedRate ?? 0)} ·{" "}
+                      {loggedHours > 0 ? `근무 ${loggedHours}시간 기록됨` : `예정 ${j.agreedHours ?? j.hoursPerSession}시간`}
+                    </p>
+                  </div>
+                  <PayButton jobId={j.id} />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Credit history */}
+      <section className="ws-card p-5">
+        <h2 className="font-bold text-slate-900">크레딧 / 이용권 내역</h2>
+        {txns.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">아직 내역이 없습니다.</p>
+        ) : (
+          <table className="mt-3 w-full text-sm">
+            <tbody className="divide-y divide-sky-100">
+              {txns.map((t) => (
+                <tr key={t.id}>
+                  <td className="py-2 text-slate-500">{formatDate(t.createdAt)}</td>
+                  <td className="py-2">{t.reason ?? t.type}</td>
+                  <td className={`py-2 text-right font-semibold ${t.amount < 0 ? "text-red-500" : "text-sky-600"}`}>
+                    {t.amount > 0 ? `+${t.amount}` : t.amount}
+                  </td>
+                  <td className="py-2 text-right text-slate-400">잔액 {t.balanceAfter}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Sitter settlements */}
+      {settlements.length > 0 && (
+        <section className="ws-card p-5">
+          <h2 className="font-bold text-slate-900">정산 내역 (시터)</h2>
+          <table className="mt-3 w-full text-sm">
+            <tbody className="divide-y divide-sky-100">
+              {settlements.map((st) => (
+                <tr key={st.id}>
+                  <td className="py-2 text-slate-500">{formatDate(st.createdAt)}</td>
+                  <td className="py-2">{st.job?.title ?? "돌봄"}</td>
+                  <td className="py-2 text-right font-semibold text-sky-600">{won(st.netAmount)}</td>
+                  <td className="py-2 text-right">
+                    <SettlementBadge status={st.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, suffix }: { label: string; value: string; suffix?: string }) {
+  return (
+    <div className="ws-card p-5">
+      <p className="text-sm text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold text-slate-900">{value}</p>
+      {suffix && <p className="text-xs text-slate-400">{suffix}</p>}
+    </div>
+  );
+}
+
+function SettlementBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    PENDING: "bg-amber-100 text-amber-700",
+    PAID: "bg-sky-100 text-sky-700",
+    COMPLETED: "bg-emerald-100 text-emerald-700",
+    CANCELED: "bg-slate-100 text-slate-500",
+  };
+  const ko: Record<string, string> = {
+    PENDING: "정산 대기",
+    PAID: "지급 완료",
+    COMPLETED: "정산 완료",
+    CANCELED: "취소",
+  };
+  return <span className={`ws-badge ${map[status] ?? ""}`}>{ko[status] ?? status}</span>;
+}
