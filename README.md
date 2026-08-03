@@ -63,6 +63,10 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   (`public/sw.js`, app-shell cache + offline fallback), generated icons
   (`npm run gen:icons`), and an install banner (`PwaManager`). Installs to the home
   screen on Android/desktop Chrome; iOS via Share → Add to Home Screen.
+- **Web push notifications** — VAPID-based push (`web-push`). `notify()` also fires a
+  push, so every in-app notification reaches the lock screen. Subscribe from the bell's
+  "🔔 푸시 알림 켜기" toggle; the SW shows the notification and focuses the app on click.
+  Generate keys with `npm run gen:vapid`. Degrades to no-op when VAPID isn't set.
 
 ---
 

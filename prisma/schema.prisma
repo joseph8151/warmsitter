@@ -180,6 +180,7 @@ model User {
 
   verifications SitterVerification[] @relation("SitterVerifications")
   notifications Notification[]
+  pushSubscriptions PushSubscription[]
 }
 
 model ParentProfile {
@@ -462,6 +463,19 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// Web Push subscription (one per browser/device).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------------

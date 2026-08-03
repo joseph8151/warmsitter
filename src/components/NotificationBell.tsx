@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
+import { PushToggle } from "./PushToggle";
 
 interface Note {
   id: string;
@@ -92,6 +93,7 @@ export function NotificationBell() {
               ))
             )}
           </div>
+          <PushToggle />
         </div>
       )}
     </div>

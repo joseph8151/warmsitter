@@ -1,5 +1,6 @@
 import type { NotificationType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
+import { sendPushToUser } from "./push";
 
 type Tx = Prisma.TransactionClient | PrismaClient;
 
@@ -29,4 +30,11 @@ export async function notify(
     // eslint-disable-next-line no-console
     console.error("[notify] failed", err);
   }
+
+  // Also deliver as a web push (best-effort; no-op when push isn't configured).
+  await sendPushToUser(params.userId, {
+    title: params.title,
+    body: params.body,
+    link: params.link,
+  }).catch(() => {});
 }

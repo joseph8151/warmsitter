@@ -112,6 +112,23 @@ Set these env vars (Vercel + `.env`):
 > If the Supabase vars are omitted, the app falls back to the demo auth stub and the
 > upload endpoint returns `503` — everything else keeps working.
 
+## 3c. Web push (VAPID)
+
+1. Generate a key pair: `npm run gen:vapid`.
+2. Set env vars (Vercel + `.env`):
+
+   | Key | Value |
+   |-----|-------|
+   | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | public key (exposed to the browser) |
+   | `VAPID_PRIVATE_KEY` | private key (server only) |
+   | `VAPID_SUBJECT` | `mailto:you@domain` or your site URL |
+
+3. Users enable push from the notification bell. Every `notify()` (new
+   application, message, settlement, etc.) then also sends a push. Dead
+   subscriptions are pruned automatically on 404/410.
+4. Requires HTTPS (Vercel provides it). iOS 16.4+ supports web push only for
+   installed PWAs (Add to Home Screen first).
+
 ## 4. Cron (expiry notifications)
 
 `vercel.json` already registers a daily job:
