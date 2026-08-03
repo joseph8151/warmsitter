@@ -64,7 +64,9 @@ export function NotificationBell() {
       <button
         onClick={toggle}
         className="relative grid h-9 w-9 place-items-center rounded-full bg-sky-50 text-lg hover:bg-sky-100"
-        aria-label="알림"
+        aria-label={unread > 0 ? `알림 ${unread}개` : "알림"}
+        aria-haspopup="true"
+        aria-expanded={open}
       >
         🔔
         {unread > 0 && (

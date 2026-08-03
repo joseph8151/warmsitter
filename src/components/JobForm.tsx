@@ -40,12 +40,14 @@ export function JobForm() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="제목 (예: 화요일 오후 돌봄 2명)"
+        aria-label="구인글 제목"
         className="w-full rounded-lg border border-sky-200 px-3 py-2"
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
         placeholder="상세 내용 (아이 나이, 시간대, 요청 사항 등)"
+        aria-label="상세 내용"
         rows={4}
         className="w-full rounded-lg border border-sky-200 px-3 py-2"
       />
@@ -54,6 +56,7 @@ export function JobForm() {
           value={city}
           onChange={(e) => setCity(e.target.value)}
           placeholder="지역"
+          aria-label="지역"
           className="flex-1 rounded-lg border border-sky-200 px-3 py-2"
         />
         <input
@@ -62,6 +65,7 @@ export function JobForm() {
           value={hours}
           onChange={(e) => setHours(e.target.value)}
           placeholder="시간"
+          aria-label="시간"
           className="w-28 rounded-lg border border-sky-200 px-3 py-2"
         />
       </div>

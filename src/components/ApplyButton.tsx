@@ -44,6 +44,7 @@ export function ApplyButton({ jobId, applied }: { jobId: string; applied: boolea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="자기소개 / 지원 메시지 (선택)"
+        aria-label="지원 메시지"
         rows={3}
         className="w-full rounded-lg border border-sky-200 px-3 py-2 text-sm"
       />

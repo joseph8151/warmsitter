@@ -74,6 +74,7 @@ export function AuthForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="이름"
+            aria-label="이름"
             className="w-full rounded-lg border border-sky-200 px-3 py-2"
           />
           <div className="flex gap-2">
@@ -99,6 +100,8 @@ export function AuthForm() {
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="이메일"
+        aria-label="이메일"
+        autoComplete="email"
         className="w-full rounded-lg border border-sky-200 px-3 py-2"
       />
       <input
@@ -107,6 +110,8 @@ export function AuthForm() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         placeholder="비밀번호"
+        aria-label="비밀번호"
+        autoComplete={mode === "signup" ? "new-password" : "current-password"}
         className="w-full rounded-lg border border-sky-200 px-3 py-2"
       />
 

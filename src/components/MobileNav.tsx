@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useFocusTrap } from "@/lib/client/useFocusTrap";
 
 interface NavLink {
   href: string;
@@ -17,11 +18,15 @@ export function MobileNav({
   loggedIn: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const panelRef = useFocusTrap<HTMLElement>(open);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    if (open) document.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
     };
   }, [open]);
 
@@ -39,7 +44,7 @@ export function MobileNav({
       {open && (
         <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="메뉴">
           <div className="absolute inset-0 bg-slate-900/40" onClick={() => setOpen(false)} />
-          <nav className="absolute right-0 top-0 h-full w-72 max-w-[80%] bg-white p-5 shadow-2xl">
+          <nav ref={panelRef} className="absolute right-0 top-0 h-full w-72 max-w-[80%] bg-white p-5 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <span className="font-extrabold text-sky-700">메뉴</span>
               <button

@@ -35,9 +35,14 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
+        <a href="#main" className="skip-link">
+          본문 바로가기
+        </a>
         <BillingProvider>
           <SiteHeader />
-          <main className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">{children}</main>
+          <main id="main" className="mx-auto w-full max-w-6xl px-4 pb-24 pt-6">
+            {children}
+          </main>
           <footer className="border-t border-sky-100 bg-white/60 py-8 text-center text-sm text-slate-500">
             <p>warm sitter · Free to search — pay only when you connect.</p>
           </footer>

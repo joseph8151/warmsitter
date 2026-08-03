@@ -112,6 +112,7 @@ export function ChatRoom({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder="메시지를 입력하세요 (일정·시급을 확정해보세요)"
+          aria-label="메시지 입력"
           className="flex-1 rounded-full border border-sky-200 px-4 py-2 text-sm"
         />
         <button onClick={send} disabled={sending} className="ws-btn-primary">

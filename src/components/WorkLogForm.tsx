@@ -51,12 +51,14 @@ export function WorkLogForm({ jobId, jobTitle }: { jobId: string; jobTitle: stri
           onChange={(e) => setHours(e.target.value)}
           className="w-28 rounded-lg border border-sky-200 px-3 py-2 text-sm"
           placeholder="시간"
+          aria-label="근무 시간"
         />
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           className="flex-1 rounded-lg border border-sky-200 px-3 py-2 text-sm"
           placeholder="오늘의 돌봄 메모"
+          aria-label="돌봄 메모"
         />
       </div>
 

@@ -67,6 +67,9 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   push, so every in-app notification reaches the lock screen. Subscribe from the bell's
   "🔔 푸시 알림 켜기" toggle; the SW shows the notification and focuses the app on click.
   Generate keys with `npm run gen:vapid`. Degrades to no-op when VAPID isn't set.
+- **Accessibility** — skip-to-content link, keyboard `:focus-visible` ring, focus-trapped
+  dialogs (`useFocusTrap` in Modal + mobile nav with Escape-to-close and focus restore),
+  labeled form controls (`aria-label`/`autoComplete`), and a `radiogroup` star rating.
 
 ---
 

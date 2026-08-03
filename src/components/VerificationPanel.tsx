@@ -87,6 +87,7 @@ export function VerificationPanel() {
             value={legalName}
             onChange={(e) => setLegalName(e.target.value)}
             placeholder="실명 (신분증과 동일하게)"
+            aria-label="실명"
             className="w-full rounded-lg border border-sky-200 px-3 py-2 text-sm"
           />
           <div className="flex items-center gap-3">

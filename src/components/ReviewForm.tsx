@@ -40,12 +40,14 @@ export function ReviewForm({
   return (
     <div className="space-y-2">
       <p className="text-sm font-semibold text-slate-700">{targetName}님 평가</p>
-      <div className="flex gap-1 text-2xl">
+      <div className="flex gap-1 text-2xl" role="radiogroup" aria-label="별점">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
             onClick={() => setRating(n)}
+            role="radio"
+            aria-checked={n === rating}
             className={n <= rating ? "text-amber-400" : "text-slate-300"}
             aria-label={`${n}점`}
           >
@@ -57,6 +59,7 @@ export function ReviewForm({
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         placeholder="후기를 남겨주세요 (선택)"
+        aria-label="후기"
         className="w-full rounded-lg border border-sky-200 px-3 py-2 text-sm"
       />
       {error && <p className="text-sm text-red-600">{error}</p>}
