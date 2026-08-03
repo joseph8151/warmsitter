@@ -59,6 +59,10 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   unit-tested helper (`src/lib/receipts.ts`).
 - **Image optimization** — avatars & work-log photos render via `next/image`
   (Supabase hosts allow-listed in `next.config.mjs`).
+- **PWA (installable)** — web app manifest (`src/app/manifest.ts`), a service worker
+  (`public/sw.js`, app-shell cache + offline fallback), generated icons
+  (`npm run gen:icons`), and an install banner (`PwaManager`). Installs to the home
+  screen on Android/desktop Chrome; iOS via Share → Add to Home Screen.
 
 ---
 

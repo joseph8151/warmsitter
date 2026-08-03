@@ -1,12 +1,30 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BillingProvider } from "@/components/BillingProvider";
+import { PwaManager } from "@/components/PwaManager";
 
 export const metadata: Metadata = {
   title: "warm sitter — Trusted babysitters, warmly matched",
   description:
     "Find and book caring, background-checked babysitters. Free to search — pay only when you connect.",
+  manifest: "/manifest.webmanifest",
+  applicationName: "warm sitter",
+  appleWebApp: {
+    capable: true,
+    title: "warm sitter",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-180.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0ea5e9",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -15,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <body>
         <BillingProvider>
           <SiteHeader />
@@ -23,6 +41,7 @@ export default function RootLayout({
           <footer className="border-t border-sky-100 bg-white/60 py-8 text-center text-sm text-slate-500">
             <p>warm sitter · Free to search — pay only when you connect.</p>
           </footer>
+          <PwaManager />
         </BillingProvider>
       </body>
     </html>
