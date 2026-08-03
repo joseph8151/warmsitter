@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ImageUploader } from "./ImageUploader";
 
 // Sitter profile photo: shows the current avatar and lets the sitter replace it.
@@ -10,10 +11,9 @@ export function AvatarUploader({ initialUrl, name }: { initialUrl: string | null
 
   return (
     <div className="flex items-center gap-4">
-      <div className="grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-sky-100 text-3xl">
+      <div className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-full bg-sky-100 text-3xl">
         {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={name} className="h-full w-full object-cover" />
+          <Image src={url} alt={name} fill sizes="80px" className="object-cover" />
         ) : (
           <span>{name.charAt(0)}</span>
         )}

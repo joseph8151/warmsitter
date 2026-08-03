@@ -186,7 +186,10 @@ export default async function DashboardPage() {
 
       {/* Credit history */}
       <section className="ws-card p-5">
-        <h2 className="font-bold text-slate-900">크레딧 / 이용권 내역</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-slate-900">크레딧 / 이용권 내역</h2>
+          <Link href="/receipts" className="text-sm text-sky-600 hover:underline">결제 내역 · 영수증 →</Link>
+        </div>
         {txns.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">아직 내역이 없습니다.</p>
         ) : (

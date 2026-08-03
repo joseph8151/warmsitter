@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { api } from "@/lib/client/api";
 import { ImageUploader } from "./ImageUploader";
 
@@ -62,8 +63,13 @@ export function WorkLogForm({ jobId, jobTitle }: { jobId: string; jobTitle: stri
       <div className="flex items-center gap-3">
         <ImageUploader kind="worklog" label="사진 첨부" onUploaded={setImageUrl} />
         {imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt="worklog" className="h-12 w-12 rounded-lg object-cover" />
+          <Image
+            src={imageUrl}
+            alt="worklog"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-lg object-cover"
+          />
         )}
       </div>
 

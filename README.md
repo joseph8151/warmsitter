@@ -54,6 +54,11 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   set a time (`/api/interviews/[id]/respond`).
 - **Search** — `/sitters` supports city / max-rate / min-rating / verified filters and
   pagination; premium sitters get priority placement.
+- **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
+  (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
+  unit-tested helper (`src/lib/receipts.ts`).
+- **Image optimization** — avatars & work-log photos render via `next/image`
+  (Supabase hosts allow-listed in `next.config.mjs`).
 
 ---
 

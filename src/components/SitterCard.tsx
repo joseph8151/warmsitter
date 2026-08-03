@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useBilling } from "./BillingProvider";
 import { api } from "@/lib/client/api";
 import { won } from "@/lib/format";
@@ -59,10 +60,9 @@ export function SitterCard({ sitter }: { sitter: Sitter }) {
     <div className="ws-card flex flex-col p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-sky-100 text-2xl">
+          <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-sky-100 text-2xl">
             {sitter.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={sitter.photoUrl} alt={sitter.name} className="h-full w-full object-cover" />
+              <Image src={sitter.photoUrl} alt={sitter.name} fill sizes="48px" className="object-cover" />
             ) : (
               sitter.name.charAt(0)
             )}
