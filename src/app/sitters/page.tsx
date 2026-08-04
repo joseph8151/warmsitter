@@ -7,6 +7,7 @@ import { format, getDictionary, getLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { blockedUserIds } from "@/lib/blocks";
 import { DAY_LABELS, SLOT_LABELS, TIME_SLOTS } from "@/lib/availability";
+import { RecentlyViewedStrip, type RecentSitter } from "@/components/RecentlyViewedStrip";
 
 export const dynamic = "force-dynamic";
 
@@ -97,12 +98,29 @@ export default async function SittersPage({
 
   // Which of the listed sitters has the current parent already favorited?
   let favoritedSet = new Set<string>();
+  let recentSitters: RecentSitter[] = [];
   if (user?.role === "PARENT" && sitters.length > 0) {
     const favs = await prisma.favorite.findMany({
       where: { parentId: user.id, sitterId: { in: sitters.map((s) => s.user.id) } },
       select: { sitterId: true },
     });
     favoritedSet = new Set(favs.map((f) => f.sitterId));
+  }
+  if (user?.role === "PARENT") {
+    const recent = await prisma.recentlyViewed.findMany({
+      where: { userId: user.id },
+      orderBy: { viewedAt: "desc" },
+      take: 8,
+      include: { sitter: { select: { id: true, name: true, sitterProfile: { select: { photoUrl: true, hourlyRate: true } } } } },
+    });
+    recentSitters = recent
+      .filter((r) => r.sitter.sitterProfile)
+      .map((r) => ({
+        id: r.sitter.id,
+        name: r.sitter.name,
+        photoUrl: r.sitter.sitterProfile!.photoUrl,
+        hourlyRate: r.sitter.sitterProfile!.hourlyRate,
+      }));
   }
   const qs = (p: number) => {
     const q = new URLSearchParams();
@@ -126,6 +144,8 @@ export default async function SittersPage({
         <h1 className="text-3xl font-extrabold text-slate-900">{t.title}</h1>
         <p className="mt-1 text-slate-600">{t.subtitle}</p>
       </div>
+
+      <RecentlyViewedStrip title={t.recentlyViewed} sitters={recentSitters} />
 
       <div className="mb-6">
         <SitterFilters

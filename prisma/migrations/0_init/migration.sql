@@ -367,6 +367,16 @@ CREATE TABLE "Block" (
 );
 
 -- CreateTable
+CREATE TABLE "RecentlyViewed" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "sitterId" TEXT NOT NULL,
+    "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "RecentlyViewed_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Favorite" (
     "id" TEXT NOT NULL,
     "parentId" TEXT NOT NULL,
@@ -518,6 +528,12 @@ CREATE INDEX "Block_blockedId_idx" ON "Block"("blockedId");
 CREATE UNIQUE INDEX "Block_blockerId_blockedId_key" ON "Block"("blockerId", "blockedId");
 
 -- CreateIndex
+CREATE INDEX "RecentlyViewed_userId_viewedAt_idx" ON "RecentlyViewed"("userId", "viewedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RecentlyViewed_userId_sitterId_key" ON "RecentlyViewed"("userId", "sitterId");
+
+-- CreateIndex
 CREATE INDEX "Favorite_parentId_idx" ON "Favorite"("parentId");
 
 -- CreateIndex
@@ -642,6 +658,12 @@ ALTER TABLE "Block" ADD CONSTRAINT "Block_blockerId_fkey" FOREIGN KEY ("blockerI
 
 -- AddForeignKey
 ALTER TABLE "Block" ADD CONSTRAINT "Block_blockedId_fkey" FOREIGN KEY ("blockedId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RecentlyViewed" ADD CONSTRAINT "RecentlyViewed_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "RecentlyViewed" ADD CONSTRAINT "RecentlyViewed_sitterId_fkey" FOREIGN KEY ("sitterId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Favorite" ADD CONSTRAINT "Favorite_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -89,6 +89,7 @@ const dictionaries = {
       subtitle:
         "검색은 무료예요 — 면접 제안·채팅을 시작할 때만 크레딧/이용권이 차감됩니다. 프리미엄은 무제한.",
       count: "{n}명의 시터",
+      recentlyViewed: "최근 본 시터",
       empty: "조건에 맞는 시터가 없습니다. 필터를 조정해보세요.",
       region: "지역",
       maxRate: "최대 시급",
@@ -191,6 +192,7 @@ const dictionaries = {
       subtitle:
         "Searching is free — you only spend a credit/ticket to propose an interview or start a chat. Premium members go unlimited.",
       count: "{n} sitters",
+      recentlyViewed: "Recently viewed",
       empty: "No sitters match your filters. Try adjusting them.",
       region: "City",
       maxRate: "Max rate",

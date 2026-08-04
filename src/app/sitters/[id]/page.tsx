@@ -7,6 +7,7 @@ import { won, formatDate } from "@/lib/format";
 import { SitterProfileActions } from "@/components/SitterProfileActions";
 import { ReportBlockMenu } from "@/components/ReportBlockMenu";
 import { AvailabilityGrid } from "@/components/AvailabilityGrid";
+import { RecordSitterView } from "@/components/RecordSitterView";
 import { getLocale } from "@/lib/i18n";
 import type { TimeSlot } from "@/lib/availability";
 
@@ -55,6 +56,7 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <RecordSitterView sitterId={profile.userId} />
       <Link href="/sitters" className="text-sm text-sky-600 hover:underline">← 시터 목록</Link>
 
       {/* Header */}

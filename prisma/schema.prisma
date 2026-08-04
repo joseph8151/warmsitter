@@ -223,6 +223,8 @@ model User {
   pushSubscriptions PushSubscription[]
   favorites     Favorite[] @relation("ParentFavorites")
   favoritedBy   Favorite[] @relation("SitterFavoritedBy")
+  recentViews      RecentlyViewed[] @relation("UserRecentViews")
+  recentlyViewedBy RecentlyViewed[] @relation("SitterRecentlyViewed")
   reportsMade    Report[] @relation("Reporter")
   reportsAgainst Report[] @relation("Reported")
   blocksMade     Block[]  @relation("Blocker")
@@ -599,6 +601,19 @@ model Block {
   @@unique([blockerId, blockedId])
   @@index([blockerId])
   @@index([blockedId])
+}
+
+// A parent's recently viewed sitters (most-recent-first).
+model RecentlyViewed {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserRecentViews", fields: [userId], references: [id], onDelete: Cascade)
+  sitterId  String
+  sitter    User     @relation("SitterRecentlyViewed", fields: [sitterId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime @default(now())
+
+  @@unique([userId, sitterId])
+  @@index([userId, viewedAt])
 }
 
 // A parent bookmarking a sitter.
