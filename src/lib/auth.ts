@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import type { User } from "@prisma/client";
 import { isSupabaseAuthEnabled } from "./supabase/config";
 import { createSupabaseServerClient } from "./supabase/server";
+import { resolveSelfProvisionRole } from "./authz";
 
 // -----------------------------------------------------------------------------
 // Auth resolution.
@@ -39,11 +40,9 @@ async function getUserFromSupabase(): Promise<User | null> {
     email.split("@")[0];
 
   // SECURITY: user_metadata is writable by the end user themselves
-  // (supabase.auth.updateUser), so we must NEVER trust it for privileged roles.
-  // Only allow self-provisioning as PARENT or SITTER; ADMIN is never granted via
-  // signup — it must be assigned out-of-band (seed / DB / trusted admin process).
-  const requestedRole = authUser.user_metadata?.role;
-  const desiredRole: User["role"] = requestedRole === "SITTER" ? "SITTER" : "PARENT";
+  // (supabase.auth.updateUser), so roles must never be trusted from it. Clamp to
+  // PARENT/SITTER; ADMIN is only assigned out-of-band. (See authz.test.ts.)
+  const desiredRole: User["role"] = resolveSelfProvisionRole(authUser.user_metadata?.role);
 
   // 1) Already linked by Supabase auth id.
   const byAuthId = await prisma.user.findUnique({ where: { authId: authUser.id } });

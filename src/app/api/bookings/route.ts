@@ -5,6 +5,7 @@ import { createBookingSchema } from "@/lib/schemas";
 import { enforceRateLimit } from "@/lib/security";
 import { areBlocked } from "@/lib/blocks";
 import { notify } from "@/lib/notify";
+import { resolveBookingSides } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +38,12 @@ export async function POST(req: Request) {
     const body = createBookingSchema.parse(await req.json());
 
     if (body.counterpartyId === user.id) return json({ error: "CANNOT_BOOK_SELF" }, 400);
-    if (user.role !== "PARENT" && user.role !== "SITTER") {
-      return json({ error: "ROLE_NOT_ALLOWED" }, 403);
-    }
+
+    // Resolve parent/sitter sides from the creator's role (see authz.test.ts).
+    const sides = resolveBookingSides(user.role, user.id, body.counterpartyId);
+    if (!sides) return json({ error: "ROLE_NOT_ALLOWED" }, 403);
+    const { parentId, sitterId, expectedCounterRole } = sides;
+
     if (await areBlocked(user.id, body.counterpartyId)) {
       return json({ error: "BLOCKED" }, 403);
     }
@@ -49,11 +53,6 @@ export async function POST(req: Request) {
       select: { role: true },
     });
     if (!counterparty) return json({ error: "USER_NOT_FOUND" }, 404);
-
-    // Determine parent/sitter sides from the two roles.
-    const parentId = user.role === "PARENT" ? user.id : body.counterpartyId;
-    const sitterId = user.role === "SITTER" ? user.id : body.counterpartyId;
-    const expectedCounterRole = user.role === "PARENT" ? "SITTER" : "PARENT";
     if (counterparty.role !== expectedCounterRole) {
       return json({ error: "INVALID_COUNTERPARTY_ROLE" }, 400);
     }

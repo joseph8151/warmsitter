@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { audit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
+import { canSuspend } from "@/lib/authz";
 import { z } from "zod";
 
 const schema = z.object({ suspend: z.boolean(), reason: z.string().max(500).optional() });
@@ -14,11 +15,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const admin = await requireRole(["ADMIN"]);
     const { suspend, reason } = schema.parse(await req.json());
 
-    if (params.id === admin.id) return json({ error: "CANNOT_SUSPEND_SELF" }, 400);
-
     const target = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } });
     if (!target) return json({ error: "NOT_FOUND" }, 404);
-    if (target.role === "ADMIN") return json({ error: "CANNOT_SUSPEND_ADMIN" }, 403);
+
+    // Moderation guard (see canSuspend / authz.test.ts).
+    const decision = canSuspend(admin.id, { id: params.id, role: target.role });
+    if (!decision.ok) return json({ error: decision.error }, decision.status);
 
     const updated = await prisma.user.update({
       where: { id: params.id },

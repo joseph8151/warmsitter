@@ -213,7 +213,9 @@ swap in any auth provider.
 ## Scripts
 - `npm run dev` / `build` / `start`
 - `npm run typecheck` — `tsc --noEmit`
-- `npm test` — Vitest unit tests (fee split, entitlement, settlement transitions, subscription periods)
+- `npm test` — Vitest unit tests (fee split, entitlement, settlement transitions,
+  subscription periods, CSV export, rate limiter, and authorization decisions —
+  role provisioning, review authz, booking sides, suspend guard)
 - `npm run db:seed` — seed demo data
 - `npm run prisma:migrate` — run migrations
 
