@@ -61,6 +61,9 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   `/admin/reports`) and block them (`Block` model). Blocks are mutual: they cut off
   chat, messaging, and interview proposals, and hide the user from search
   (`src/lib/blocks.ts`).
+- **Audit log** — append-only `AuditLog` of sensitive actions (settings changes,
+  verification decisions, settlement transitions, report handling, blocks) with
+  actor + IP (`src/lib/audit.ts`), viewable by admins at `/admin/audit`.
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).

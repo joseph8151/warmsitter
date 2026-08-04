@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { getSettings, normalize } from "@/lib/settings";
 import { adminSettingsSchema } from "@/lib/schemas";
+import { audit } from "@/lib/audit";
 import type { Prisma } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,15 @@ export async function PUT(req: Request) {
         updatedBy: admin.id,
       },
       update: data,
+    });
+
+    await audit({
+      actorId: admin.id,
+      action: "SETTINGS_UPDATED",
+      targetType: "platform_setting",
+      targetId: "singleton",
+      metadata: patch as Record<string, unknown>,
+      req,
     });
 
     return json(normalize(row));

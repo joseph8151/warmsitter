@@ -89,6 +89,7 @@ export default async function AdminHomePage() {
         />
         <QueueCard href="/admin/reports" title="신고 처리" count={openReports} cta="검토하기" />
         <QueueCard href="/admin/settings" title="수익 설정" count={null} cta="설정 열기" />
+        <QueueCard href="/admin/audit" title="감사 로그" count={null} cta="기록 보기" />
       </div>
     </div>
   );

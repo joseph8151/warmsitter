@@ -486,6 +486,22 @@ model Notification {
   @@index([userId, read, createdAt])
 }
 
+// Append-only audit trail for sensitive/administrative actions.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  // user who performed the action (null for system)
+  action     String   // e.g. SETTINGS_UPDATED, VERIFICATION_APPROVED
+  targetType String?  // e.g. "user", "settlement", "report"
+  targetId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+  @@index([targetType, targetId])
+}
+
 // User safety: reports (reviewed by admins) and blocks (mutual interaction cut).
 model Report {
   id         String       @id @default(cuid())

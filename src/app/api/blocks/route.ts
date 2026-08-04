@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { blockSchema } from "@/lib/schemas";
 import { enforceRateLimit } from "@/lib/security";
+import { audit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,11 @@ export async function POST(req: Request) {
     });
     if (existing) {
       await prisma.block.delete({ where: { id: existing.id } });
+      await audit({ actorId: user.id, action: "USER_UNBLOCKED", targetType: "user", targetId: userId, req });
       return json({ blocked: false });
     }
     await prisma.block.create({ data: { blockerId: user.id, blockedId: userId } });
+    await audit({ actorId: user.id, action: "USER_BLOCKED", targetType: "user", targetId: userId, req });
     return json({ blocked: true });
   } catch (err) {
     return handleError(err);

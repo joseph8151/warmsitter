@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { reportStatusSchema } from "@/lib/schemas";
+import { audit } from "@/lib/audit";
 
 // Admin updates a report's status (REVIEWING / RESOLVED / DISMISSED).
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -20,6 +21,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         reviewedAt: status === "RESOLVED" || status === "DISMISSED" ? new Date() : report.reviewedAt,
       },
     });
+    await audit({
+      actorId: admin.id,
+      action: "REPORT_STATUS_CHANGED",
+      targetType: "report",
+      targetId: params.id,
+      metadata: { status, reportedId: report.reportedId },
+      req,
+    });
+
     return json({ report: updated });
   } catch (err) {
     return handleError(err);

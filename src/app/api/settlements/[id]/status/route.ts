@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { settlementStatusSchema } from "@/lib/schemas";
 import { canTransitionSettlement } from "@/lib/settlement-status";
+import { audit } from "@/lib/audit";
 
 // Advance a settlement through its lifecycle: PENDING -> PAID -> COMPLETED.
 // Admin-only (a real payout system would trigger PAID from a bank transfer job).
@@ -11,7 +12,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    await requireRole(["ADMIN"]);
+    const admin = await requireRole(["ADMIN"]);
     const { status } = settlementStatusSchema.parse(await req.json());
 
     const settlement = await prisma.settlement.findUnique({ where: { id: params.id } });
@@ -31,6 +32,15 @@ export async function POST(
         paidAt: status === "PAID" ? new Date() : settlement.paidAt,
         completedAt: status === "COMPLETED" ? new Date() : settlement.completedAt,
       },
+    });
+
+    await audit({
+      actorId: admin.id,
+      action: "SETTLEMENT_STATUS_CHANGED",
+      targetType: "settlement",
+      targetId: params.id,
+      metadata: { from: settlement.status, to: status },
+      req,
     });
 
     return json({ settlement: updated });

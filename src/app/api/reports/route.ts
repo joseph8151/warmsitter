@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { reportSchema } from "@/lib/schemas";
 import { enforceRateLimit } from "@/lib/security";
+import { audit } from "@/lib/audit";
 
 // File a safety report against another user (reviewed by admins).
 export async function POST(req: Request) {
@@ -19,6 +20,14 @@ export async function POST(req: Request) {
 
     const report = await prisma.report.create({
       data: { reporterId: user.id, reportedId, reason, detail, status: "OPEN" },
+    });
+    await audit({
+      actorId: user.id,
+      action: "USER_REPORTED",
+      targetType: "user",
+      targetId: reportedId,
+      metadata: { reason },
+      req,
     });
     return json({ report: { id: report.id, status: report.status } }, 201);
   } catch (err) {
