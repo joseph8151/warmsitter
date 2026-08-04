@@ -8,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { blockedUserIds } from "@/lib/blocks";
 import { DAY_LABELS, SLOT_LABELS, TIME_SLOTS } from "@/lib/availability";
 import { RecentlyViewedStrip, type RecentSitter } from "@/components/RecentlyViewedStrip";
+import { SitterEmptyState } from "@/components/SitterEmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -173,7 +174,17 @@ export default async function SittersPage({
       <p className="mb-3 text-sm text-slate-500">{format(t.count, { n: total })}</p>
 
       {sitters.length === 0 ? (
-        <div className="ws-card p-10 text-center text-slate-500">{t.empty}</div>
+        <SitterEmptyState
+          marketplaceEmpty={(await prisma.sitterProfile.count()) === 0}
+          labels={{
+            filteredTitle: t.emptyFilteredTitle,
+            filteredDesc: t.emptyFilteredDesc,
+            resetCta: t.emptyResetCta,
+            noneTitle: t.emptyNoneTitle,
+            noneDesc: t.emptyNoneDesc,
+            noneCta: t.emptyNoneCta,
+          }}
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sitters.map((s) => (
