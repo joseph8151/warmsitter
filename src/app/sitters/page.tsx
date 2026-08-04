@@ -23,6 +23,8 @@ export default async function SittersPage({
     verified?: string;
     day?: string;
     slot?: string;
+    q?: string;
+    sort?: string;
     page?: string;
   };
 }) {
@@ -34,6 +36,15 @@ export default async function SittersPage({
   if (searchParams.maxRate) where.hourlyRate = { lte: Number(searchParams.maxRate) };
   if (searchParams.minRating) where.ratingAvg = { gte: Number(searchParams.minRating) };
   if (searchParams.verified === "1") where.verified = true;
+
+  // Keyword search over sitter name (on User) or bio.
+  if (searchParams.q) {
+    const q = searchParams.q;
+    where.OR = [
+      { bio: { contains: q, mode: "insensitive" } },
+      { user: { name: { contains: q, mode: "insensitive" } } },
+    ];
+  }
 
   // Availability filter: sitters available on a given day and/or time slot.
   const dayNum = searchParams.day !== undefined && searchParams.day !== "" ? Number(searchParams.day) : undefined;
@@ -58,12 +69,23 @@ export default async function SittersPage({
     if (blocked.size > 0) where.userId = { notIn: [...blocked] };
   }
 
+  // Premium sitters always get priority placement, then the chosen sort.
+  const sortTail: Prisma.SitterProfileOrderByWithRelationInput[] =
+    searchParams.sort === "rate_asc"
+      ? [{ hourlyRate: "asc" }]
+      : searchParams.sort === "exp_desc"
+      ? [{ yearsOfExp: "desc" }]
+      : [{ verified: "desc" }, { ratingAvg: "desc" }];
+  const orderBy: Prisma.SitterProfileOrderByWithRelationInput[] = [
+    { user: { isPremium: "desc" } },
+    ...sortTail,
+  ];
+
   const [total, sitters] = await Promise.all([
     prisma.sitterProfile.count({ where }),
     prisma.sitterProfile.findMany({
       where,
-      // Premium sitters get priority placement (priority-listing perk).
-      orderBy: [{ user: { isPremium: "desc" } }, { verified: "desc" }, { ratingAvg: "desc" }],
+      orderBy,
       include: { user: { select: { id: true, name: true, isPremium: true } } },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
@@ -90,6 +112,8 @@ export default async function SittersPage({
     if (searchParams.verified) q.set("verified", searchParams.verified);
     if (searchParams.day) q.set("day", searchParams.day);
     if (searchParams.slot) q.set("slot", searchParams.slot);
+    if (searchParams.q) q.set("q", searchParams.q);
+    if (searchParams.sort) q.set("sort", searchParams.sort);
     q.set("page", String(p));
     return `/sitters?${q.toString()}`;
   };
@@ -113,6 +137,11 @@ export default async function SittersPage({
             verifiedOnly: t.verifiedOnly,
             availableDay: t.availableDay,
             availableTime: t.availableTime,
+            searchPlaceholder: t.searchPlaceholder,
+            sortLabel: t.sortLabel,
+            sortRating: t.sortRating,
+            sortRateAsc: t.sortRateAsc,
+            sortExp: t.sortExp,
             apply: t.apply,
             reset: t.reset,
           }}

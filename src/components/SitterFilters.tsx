@@ -13,6 +13,11 @@ export interface FilterLabels {
   reset: string;
   availableDay: string;
   availableTime: string;
+  searchPlaceholder: string;
+  sortLabel: string;
+  sortRating: string;
+  sortRateAsc: string;
+  sortExp: string;
 }
 
 export interface SlotOption {
@@ -34,38 +39,54 @@ export function SitterFilters({
   const router = useRouter();
   const params = useSearchParams();
 
+  const [q, setQ] = useState(params.get("q") ?? "");
   const [city, setCity] = useState(params.get("city") ?? "");
   const [maxRate, setMaxRate] = useState(params.get("maxRate") ?? "");
   const [minRating, setMinRating] = useState(params.get("minRating") ?? "");
   const [verified, setVerified] = useState(params.get("verified") === "1");
   const [day, setDay] = useState(params.get("day") ?? "");
   const [slot, setSlot] = useState(params.get("slot") ?? "");
+  const [sort, setSort] = useState(params.get("sort") ?? "");
 
   function apply(e: React.FormEvent) {
     e.preventDefault();
-    const q = new URLSearchParams();
-    if (city) q.set("city", city);
-    if (maxRate) q.set("maxRate", maxRate);
-    if (minRating) q.set("minRating", minRating);
-    if (verified) q.set("verified", "1");
-    if (day) q.set("day", day);
-    if (slot) q.set("slot", slot);
-    q.set("page", "1"); // reset to first page on filter change
-    router.push(`/sitters?${q.toString()}`);
+    const p = new URLSearchParams();
+    if (q) p.set("q", q);
+    if (city) p.set("city", city);
+    if (maxRate) p.set("maxRate", maxRate);
+    if (minRating) p.set("minRating", minRating);
+    if (verified) p.set("verified", "1");
+    if (day) p.set("day", day);
+    if (slot) p.set("slot", slot);
+    if (sort) p.set("sort", sort);
+    p.set("page", "1"); // reset to first page on filter change
+    router.push(`/sitters?${p.toString()}`);
   }
 
   function reset() {
+    setQ("");
     setCity("");
     setMaxRate("");
     setMinRating("");
     setVerified(false);
     setDay("");
     setSlot("");
+    setSort("");
     router.push("/sitters");
   }
 
   return (
     <form onSubmit={apply} className="ws-card flex flex-wrap items-end gap-3 p-4">
+      <label className="grow text-sm text-slate-600 sm:grow-0">
+        <span className="sr-only">{labels.searchPlaceholder}</span>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder={`🔎 ${labels.searchPlaceholder}`}
+          aria-label={labels.searchPlaceholder}
+          className="mt-1 block w-full rounded-lg border border-sky-200 px-3 py-2 sm:w-56"
+        />
+      </label>
       <label className="text-sm text-slate-600">
         {labels.region}
         <input
@@ -127,6 +148,18 @@ export function SitterFilters({
       <label className="flex items-center gap-2 text-sm text-slate-600">
         <input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} />
         {labels.verifiedOnly}
+      </label>
+      <label className="text-sm text-slate-600">
+        {labels.sortLabel}
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="mt-1 block w-36 rounded-lg border border-sky-200 px-3 py-2"
+        >
+          <option value="">{labels.sortRating}</option>
+          <option value="rate_asc">{labels.sortRateAsc}</option>
+          <option value="exp_desc">{labels.sortExp}</option>
+        </select>
       </label>
       <div className="flex gap-2">
         <button type="submit" className="ws-btn-primary text-sm">{labels.apply}</button>
