@@ -178,6 +178,10 @@ model User {
   // for fast "is premium?" checks in the matching flow.
   isPremium Boolean @default(false)
 
+  // Notification channel preferences (consent / spam control).
+  emailNotifications Boolean @default(true)
+  pushNotifications  Boolean @default(true)
+
   parentProfile ParentProfile?
   sitterProfile SitterProfile?
 

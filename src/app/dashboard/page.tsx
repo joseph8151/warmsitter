@@ -8,6 +8,7 @@ import { WorkLogForm } from "@/components/WorkLogForm";
 import { SubscriptionManager } from "@/components/SubscriptionManager";
 import { ReviewForm } from "@/components/ReviewForm";
 import { GettingStarted, type ChecklistItem } from "@/components/GettingStarted";
+import { NotificationPreferences } from "@/components/NotificationPreferences";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +140,9 @@ export default async function DashboardPage() {
 
       {/* Premium membership management */}
       <SubscriptionManager />
+
+      {/* Notification channel preferences */}
+      <NotificationPreferences />
 
       {/* Sitter: active jobs — write work logs (with photo upload) */}
       {sitterJobs.length > 0 && (

@@ -51,6 +51,9 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   verification results. Header bell (`/api/notifications`) polls every 30s with an
   unread badge. `notify()` fans out to **in-app + web push + email** (email via Resend
   for a curated set of important types; `src/lib/email.ts`, no-op without a key).
+- **Notification preferences** — users toggle email/push channels
+  (`User.emailNotifications` / `pushNotifications`, `/api/me/preferences`, settings on
+  the dashboard); `notify()` honors them before sending.
 - **Interview management** — `/interviews` lists proposals; sitters accept/decline and
   set a time (`/api/interviews/[id]/respond`).
 - **Search** — `/sitters` supports city / max-rate / min-rating / verified filters and

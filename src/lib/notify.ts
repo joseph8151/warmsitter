@@ -1,7 +1,7 @@
 import type { NotificationType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
-import { sendPushToUser } from "./push";
-import { notificationEmailHtml, sendEmail, shouldEmail } from "./email";
+import { isPushEnabled, sendPushToUser } from "./push";
+import { isEmailEnabled, notificationEmailHtml, sendEmail, shouldEmail } from "./email";
 
 type Tx = Prisma.TransactionClient | PrismaClient;
 
@@ -32,30 +32,41 @@ export async function notify(
     console.error("[notify] failed", err);
   }
 
-  // Also deliver as a web push (best-effort; no-op when push isn't configured).
-  await sendPushToUser(params.userId, {
-    title: params.title,
-    body: params.body,
-    link: params.link,
-  }).catch(() => {});
+  // Fan out to push + email, honoring the user's channel preferences. Skip the
+  // extra lookup entirely when neither channel is configured globally.
+  if (!isPushEnabled && !isEmailEnabled) return;
 
-  // And, for important types, as an email (best-effort; no-op when unconfigured).
-  if (shouldEmail(params.type)) {
-    try {
-      const recipient = await prisma.user.findUnique({
-        where: { id: params.userId },
-        select: { email: true },
-      });
-      if (recipient?.email && !recipient.email.endsWith("@users.warmsitter")) {
-        await sendEmail({
-          to: recipient.email,
-          subject: params.title,
-          html: notificationEmailHtml({ title: params.title, body: params.body, link: params.link }),
-          text: params.body ?? params.title,
-        });
-      }
-    } catch {
-      /* best-effort */
+  try {
+    const recipient = await prisma.user.findUnique({
+      where: { id: params.userId },
+      select: { email: true, emailNotifications: true, pushNotifications: true },
+    });
+    if (!recipient) return;
+
+    // Web push (best-effort; no-op when unconfigured or opted out).
+    if (recipient.pushNotifications) {
+      await sendPushToUser(params.userId, {
+        title: params.title,
+        body: params.body,
+        link: params.link,
+      }).catch(() => {});
     }
+
+    // Email for important types (best-effort; skip synthetic demo addresses).
+    if (
+      recipient.emailNotifications &&
+      shouldEmail(params.type) &&
+      recipient.email &&
+      !recipient.email.endsWith("@users.warmsitter")
+    ) {
+      await sendEmail({
+        to: recipient.email,
+        subject: params.title,
+        html: notificationEmailHtml({ title: params.title, body: params.body, link: params.link }),
+        text: params.body ?? params.title,
+      }).catch(() => {});
+    }
+  } catch {
+    /* best-effort — never break the primary action */
   }
 }

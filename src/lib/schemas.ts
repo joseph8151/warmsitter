@@ -99,6 +99,15 @@ export const blockSchema = z.object({
   userId: z.string().min(1),
 });
 
+export const preferencesSchema = z
+  .object({
+    emailNotifications: z.boolean().optional(),
+    pushNotifications: z.boolean().optional(),
+  })
+  .refine((v) => v.emailNotifications !== undefined || v.pushNotifications !== undefined, {
+    message: "No preference provided",
+  });
+
 export const availabilitySchema = z.object({
   slots: z
     .array(
