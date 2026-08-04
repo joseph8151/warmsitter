@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { SitterCard } from "@/components/SitterCard";
 import { SitterFilters } from "@/components/SitterFilters";
 import { format, getDictionary, getLocale } from "@/lib/i18n";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,17 @@ export default async function SittersPage({
 
   const t = getDictionary(getLocale()).sitters;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Which of the listed sitters has the current parent already favorited?
+  const user = await getCurrentUser();
+  let favoritedSet = new Set<string>();
+  if (user?.role === "PARENT" && sitters.length > 0) {
+    const favs = await prisma.favorite.findMany({
+      where: { parentId: user.id, sitterId: { in: sitters.map((s) => s.user.id) } },
+      select: { sitterId: true },
+    });
+    favoritedSet = new Set(favs.map((f) => f.sitterId));
+  }
   const qs = (p: number) => {
     const q = new URLSearchParams();
     if (searchParams.city) q.set("city", searchParams.city);
@@ -77,6 +89,7 @@ export default async function SittersPage({
           {sitters.map((s) => (
             <SitterCard
               key={s.id}
+              favorited={favoritedSet.has(s.user.id)}
               sitter={{
                 id: s.user.id,
                 name: s.user.name,

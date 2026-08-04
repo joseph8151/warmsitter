@@ -153,6 +153,13 @@ async function main() {
     });
   }
 
+  // parent1 saved Emma.
+  await prisma.favorite.upsert({
+    where: { parentId_sitterId: { parentId: parent1.id, sitterId: emma.id } },
+    create: { parentId: parent1.id, sitterId: emma.id },
+    update: {},
+  });
+
   // A couple of demo notifications for the bell.
   const noteCount = await prisma.notification.count({ where: { userId: parent1.id } });
   if (noteCount === 0) {

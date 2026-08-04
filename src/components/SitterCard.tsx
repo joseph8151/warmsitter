@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useBilling } from "./BillingProvider";
 import { api } from "@/lib/client/api";
 import { won } from "@/lib/format";
+import { FavoriteButton } from "./FavoriteButton";
 
 interface Sitter {
   id: string;
@@ -22,7 +24,7 @@ interface Sitter {
 
 // A sitter result card with the two billable entry points from the flow:
 // "면접 제안" (INTERVIEW_PROPOSAL) and "채팅 시작" (START_CHAT).
-export function SitterCard({ sitter }: { sitter: Sitter }) {
+export function SitterCard({ sitter, favorited = false }: { sitter: Sitter; favorited?: boolean }) {
   const { runBillable } = useBilling();
   const [status, setStatus] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -68,25 +70,28 @@ export function SitterCard({ sitter }: { sitter: Sitter }) {
             )}
           </div>
           <div>
-            <p className="font-bold text-slate-900">
+            <Link href={`/sitters/${sitter.id}`} className="font-bold text-slate-900 hover:text-sky-600">
               {sitter.name}
               {sitter.isPremium && (
                 <span className="ml-2 ws-badge bg-gradient-to-r from-sunny-300 to-sunny-400 text-slate-900">
                   ★
                 </span>
               )}
-            </p>
+            </Link>
             <p className="text-sm text-slate-500">
               {sitter.city || "전국"} · 경력 {sitter.yearsOfExp}년
             </p>
           </div>
         </div>
-        {sitter.verified && (
-          <span className="ws-badge bg-sky-100 text-sky-700">✔ 인증</span>
-        )}
+        <div className="flex items-center gap-2">
+          {sitter.verified && <span className="ws-badge bg-sky-100 text-sky-700">✔ 인증</span>}
+          <FavoriteButton sitterId={sitter.id} initialFavorited={favorited} className="h-8 w-8 text-base" />
+        </div>
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm text-slate-600">{sitter.bio || "따뜻하게 아이를 돌봐드려요."}</p>
+      <Link href={`/sitters/${sitter.id}`} className="mt-3 line-clamp-2 text-sm text-slate-600 hover:text-slate-800">
+        {sitter.bio || "따뜻하게 아이를 돌봐드려요."}
+      </Link>
 
       <div className="mt-3 flex items-center justify-between">
         <span className="text-lg font-extrabold text-sky-600">{won(sitter.hourlyRate)}<span className="text-sm font-medium text-slate-400">/시간</span></span>

@@ -181,6 +181,8 @@ model User {
   verifications SitterVerification[] @relation("SitterVerifications")
   notifications Notification[]
   pushSubscriptions PushSubscription[]
+  favorites     Favorite[] @relation("ParentFavorites")
+  favoritedBy   Favorite[] @relation("SitterFavoritedBy")
 }
 
 model ParentProfile {
@@ -463,6 +465,19 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// A parent bookmarking a sitter.
+model Favorite {
+  id        String   @id @default(cuid())
+  parentId  String
+  parent    User     @relation("ParentFavorites", fields: [parentId], references: [id], onDelete: Cascade)
+  sitterId  String
+  sitter    User     @relation("SitterFavoritedBy", fields: [sitterId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([parentId, sitterId])
+  @@index([parentId])
 }
 
 // Web Push subscription (one per browser/device).

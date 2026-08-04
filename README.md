@@ -54,6 +54,9 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   set a time (`/api/interviews/[id]/respond`).
 - **Search** — `/sitters` supports city / max-rate / min-rating / verified filters and
   pagination; premium sitters get priority placement.
+- **Sitter profiles & favorites** — public `/sitters/[id]` profile with bio, rating,
+  reviews, and connect actions; parents can save sitters (❤ `Favorite` model,
+  `/api/favorites`) and view them at `/favorites`.
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).
