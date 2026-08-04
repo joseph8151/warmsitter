@@ -153,8 +153,14 @@ Set these env vars (Vercel + `.env`):
 ```
 
 Set `CRON_SECRET` in Vercel; it is sent automatically as
-`Authorization: Bearer <CRON_SECRET>` and verified by the route. Wire an email/push
-provider inside `runExpiryNotifications()` (`src/lib/notifications.ts`).
+`Authorization: Bearer <CRON_SECRET>` and verified by the route.
+
+Three crons are registered in `vercel.json`:
+- `/api/cron/expiry` — ticket-expiry reminders.
+- `/api/cron/subscriptions` — recurring premium renewals.
+- `/api/cron/booking-reminders` — pre-care booking reminders + auto-complete.
+
+All three fan out via `notify()` (in-app + push + email, honoring preferences).
 
 ---
 

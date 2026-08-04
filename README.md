@@ -75,7 +75,8 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   the counterparty confirms/declines (`Booking` model, `/bookings`,
   `/api/bookings`). Confirming writes the agreed rate/hours + matched sitter onto
   the linked job, so the existing payment flow can charge it. Blocks/notifications
-  apply.
+  apply. A daily cron (`/api/cron/booking-reminders`) reminds both parties ~a day
+  ahead (once) and auto-completes past confirmed bookings.
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).

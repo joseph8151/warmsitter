@@ -527,11 +527,14 @@ model Booking {
   hourlyRate    Int
   note          String?
   status        BookingStatus @default(PROPOSED)
+  // Set when a pre-care reminder has been sent, so the cron doesn't repeat it.
+  reminderSentAt DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   @@index([parentId, status])
   @@index([sitterId, status])
+  @@index([status, scheduledDate])
 }
 
 // A sitter's recurring weekly availability (day-of-week x time slot).
