@@ -3,9 +3,19 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+export interface FilterLabels {
+  region: string;
+  maxRate: string;
+  minRating: string;
+  all: string;
+  verifiedOnly: string;
+  apply: string;
+  reset: string;
+}
+
 // Search filters for the sitter listing. Updates the URL query string so the
 // server component re-queries with the filters + pagination.
-export function SitterFilters() {
+export function SitterFilters({ labels }: { labels: FilterLabels }) {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -36,7 +46,7 @@ export function SitterFilters() {
   return (
     <form onSubmit={apply} className="ws-card flex flex-wrap items-end gap-3 p-4">
       <label className="text-sm text-slate-600">
-        지역
+        {labels.region}
         <input
           value={city}
           onChange={(e) => setCity(e.target.value)}
@@ -45,7 +55,7 @@ export function SitterFilters() {
         />
       </label>
       <label className="text-sm text-slate-600">
-        최대 시급
+        {labels.maxRate}
         <input
           type="number"
           value={maxRate}
@@ -55,13 +65,13 @@ export function SitterFilters() {
         />
       </label>
       <label className="text-sm text-slate-600">
-        최소 평점
+        {labels.minRating}
         <select
           value={minRating}
           onChange={(e) => setMinRating(e.target.value)}
           className="mt-1 block w-28 rounded-lg border border-sky-200 px-3 py-2"
         >
-          <option value="">전체</option>
+          <option value="">{labels.all}</option>
           <option value="4.5">4.5+</option>
           <option value="4">4.0+</option>
           <option value="3">3.0+</option>
@@ -69,11 +79,11 @@ export function SitterFilters() {
       </label>
       <label className="flex items-center gap-2 text-sm text-slate-600">
         <input type="checkbox" checked={verified} onChange={(e) => setVerified(e.target.checked)} />
-        인증 시터만
+        {labels.verifiedOnly}
       </label>
       <div className="flex gap-2">
-        <button type="submit" className="ws-btn-primary text-sm">적용</button>
-        <button type="button" onClick={reset} className="ws-btn-ghost text-sm">초기화</button>
+        <button type="submit" className="ws-btn-primary text-sm">{labels.apply}</button>
+        <button type="button" onClick={reset} className="ws-btn-ghost text-sm">{labels.reset}</button>
       </div>
     </form>
   );

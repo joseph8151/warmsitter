@@ -2,12 +2,14 @@ import { prisma } from "@/lib/prisma";
 import { LoginButtons } from "@/components/LoginButtons";
 import { AuthForm } from "@/components/AuthForm";
 import { isSupabaseAuthEnabled } from "@/lib/supabase/config";
+import { getDictionary, getLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
 // Real Supabase auth when configured; demo user-picker as a fallback.
 export default async function LoginPage() {
   const supabaseOn = isSupabaseAuthEnabled;
+  const t = getDictionary(getLocale()).auth;
 
   const users = supabaseOn
     ? []
@@ -20,13 +22,9 @@ export default async function LoginPage() {
   return (
     <div className="mx-auto max-w-md">
       <h1 className="text-2xl font-extrabold text-slate-900">
-        {supabaseOn ? "warm sitter 로그인" : "데모 로그인"}
+        {supabaseOn ? t.loginTitle : t.demoTitle}
       </h1>
-      <p className="mt-1 text-slate-600">
-        {supabaseOn
-          ? "이메일로 로그인하거나 회원가입하세요."
-          : "인증은 데모용 스텁입니다. 아래에서 사용자를 선택해 로그인하세요."}
-      </p>
+      <p className="mt-1 text-slate-600">{supabaseOn ? t.loginSubtitle : t.demoSubtitle}</p>
 
       <div className="mt-6">
         {supabaseOn ? (

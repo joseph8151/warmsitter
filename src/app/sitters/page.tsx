@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SitterCard } from "@/components/SitterCard";
 import { SitterFilters } from "@/components/SitterFilters";
+import { format, getDictionary, getLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,7 @@ export default async function SittersPage({
     }),
   ]);
 
+  const t = getDictionary(getLocale()).sitters;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const qs = (p: number) => {
     const q = new URLSearchParams();
@@ -48,23 +50,28 @@ export default async function SittersPage({
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-extrabold text-slate-900">Find your sitter</h1>
-        <p className="mt-1 text-slate-600">
-          Searching is free — you only spend a credit/ticket when you propose an
-          interview or start a chat. Premium members go unlimited.
-        </p>
+        <h1 className="text-3xl font-extrabold text-slate-900">{t.title}</h1>
+        <p className="mt-1 text-slate-600">{t.subtitle}</p>
       </div>
 
       <div className="mb-6">
-        <SitterFilters />
+        <SitterFilters
+          labels={{
+            region: t.region,
+            maxRate: t.maxRate,
+            minRating: t.minRating,
+            all: t.all,
+            verifiedOnly: t.verifiedOnly,
+            apply: t.apply,
+            reset: t.reset,
+          }}
+        />
       </div>
 
-      <p className="mb-3 text-sm text-slate-500">{total}명의 시터</p>
+      <p className="mb-3 text-sm text-slate-500">{format(t.count, { n: total })}</p>
 
       {sitters.length === 0 ? (
-        <div className="ws-card p-10 text-center text-slate-500">
-          조건에 맞는 시터가 없습니다. 필터를 조정해보세요.
-        </div>
+        <div className="ws-card p-10 text-center text-slate-500">{t.empty}</div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sitters.map((s) => (
@@ -91,13 +98,13 @@ export default async function SittersPage({
       {totalPages > 1 && (
         <div className="mt-8 flex items-center justify-center gap-2">
           {page > 1 && (
-            <Link href={qs(page - 1)} className="ws-btn-ghost text-sm">← 이전</Link>
+            <Link href={qs(page - 1)} className="ws-btn-ghost text-sm">{t.prev}</Link>
           )}
           <span className="text-sm text-slate-500">
             {page} / {totalPages}
           </span>
           {page < totalPages && (
-            <Link href={qs(page + 1)} className="ws-btn-ghost text-sm">다음 →</Link>
+            <Link href={qs(page + 1)} className="ws-btn-ghost text-sm">{t.next}</Link>
           )}
         </div>
       )}
