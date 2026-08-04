@@ -185,7 +185,7 @@ plus work queues:
 ```bash
 npm install
 cp .env.example .env          # fill in DATABASE_URL + Toss keys
-npx prisma migrate dev --name init
+npm run migrate:deploy        # applies the committed baseline migration
 npm run db:seed               # demo users, sitters, a matched job
 npm run dev
 ```

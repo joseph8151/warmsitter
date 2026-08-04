@@ -22,12 +22,17 @@ matching MCP connectors (Vercel, Supabase/Neon, GitHub) at
    - Direct connection (port `5432`) → `DIRECT_URL`
 3. Supabase Auth + Storage are wired in (see the section below).
 
-Run the migrations against the new database:
+Run the migrations against the new database. A baseline migration is committed at
+`prisma/migrations/0_init`, so `migrate deploy` provisions the whole schema on a
+fresh database:
 
 ```bash
 DATABASE_URL=... DIRECT_URL=... npm run migrate:deploy
 DATABASE_URL=... DIRECT_URL=... npm run db:seed   # optional demo data
 ```
+
+> Applying to an existing/managed DB that already has the tables? Baseline it once
+> with `prisma migrate resolve --applied 0_init` before `migrate deploy`.
 
 ---
 
