@@ -8,6 +8,51 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Client
+    B["Browser / installed PWA"]
+  end
+  B -->|HTTPS + CSP| APP["Next.js 14 App Router<br/>(pages · API routes · middleware)"]
+  APP -->|Prisma| DB[("PostgreSQL<br/>Neon / Supabase")]
+  APP -->|"confirm · billing key"| TOSS["Toss Payments"]
+  TOSS -->|"signed webhook"| APP
+  APP -->|"Auth + Storage (signed URLs)"| SB["Supabase"]
+  APP -->|transactional email| RS["Resend"]
+  APP -->|VAPID web push| WP["Push services"]
+  CRON["Vercel Cron"] -->|"expiry · subscriptions · booking reminders"| APP
+```
+
+**Matching flow (with hybrid billing):**
+
+```mermaid
+flowchart TD
+  A["1 · Free search / job board"] --> C{"2 · Connect:<br/>interview · accept · chat"}
+  C -->|"deduct: premium → ticket → credits"| OK["covered"]
+  C -->|"402 insufficient"| BUY["Purchase modal → tickets/credits/premium"]
+  OK --> D["3 · Chat: agree rate & hours"]
+  D --> BK["Booking proposed → confirmed"]
+  BK --> E["4 · Sitter writes work log"]
+  E --> F["5 · Parent pays → platform fee split"]
+  F --> S["Settlement: pending → paid → completed"]
+  S --> R["6 · Both leave reviews"]
+```
+
+**Notification fan-out** — one `notify()` reaches three channels, gated by each
+user's preferences:
+
+```mermaid
+flowchart LR
+  EV["App event"] --> N["notify()"]
+  N --> IA[("in-app Notification")]
+  N -->|"if enabled"| P["web push"]
+  N -->|"important types + if enabled"| M["email"]
+```
+
+---
+
 ## The hybrid revenue model
 
 ### 1) Tickets / Credits
