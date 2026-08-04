@@ -33,9 +33,9 @@ export const workLogSchema = z.object({
 
 export const payCareSchema = z.object({
   jobId: z.string().min(1),
-  // Optional overrides; otherwise the job's agreed rate/hours are used.
-  hours: z.number().positive().max(1000).optional(),
-  hourlyRate: z.number().positive().optional(),
+  // NOTE: rate & hours are resolved server-side from the job's agreed terms and
+  // approved work logs — never from client input — so the paying parent can't
+  // unilaterally set (and shortchange) the sitter's payout.
 });
 
 export const reviewSchema = z.object({

@@ -23,23 +23,20 @@ export async function POST(
 ) {
   try {
     const user = await requireUser();
-    const body = payCareSchema.parse({ ...(await req.json()), jobId: params.id });
+    // Validate the request shape (body carries no billing overrides anymore).
+    payCareSchema.parse({ ...(await req.json().catch(() => ({}))), jobId: params.id });
 
     const job = await prisma.jobPost.findUnique({ where: { id: params.id } });
     if (!job) return json({ error: "JOB_NOT_FOUND" }, 404);
     if (job.parentId !== user.id) return json({ error: "FORBIDDEN" }, 403);
     if (!job.matchedSitterId) return json({ error: "NO_MATCHED_SITTER" }, 400);
 
-    // Resolve rate & hours: explicit override -> job agreement -> approved work logs.
-    const hourlyRate =
-      body.hourlyRate ??
-      job.agreedRate ??
-      (await sitterRate(job.matchedSitterId));
+    // Resolve rate & hours from server-side truth only — the job's agreed terms,
+    // then approved work logs. The parent (payer) can NOT override these, so they
+    // can't shortchange the sitter's payout by naming a lower rate/hours.
+    const hourlyRate = job.agreedRate ?? (await sitterRate(job.matchedSitterId));
     const hours =
-      body.hours ??
-      job.agreedHours ??
-      (await approvedHours(job.id)) ??
-      job.hoursPerSession;
+      job.agreedHours ?? (await approvedHours(job.id)) ?? job.hoursPerSession;
 
     if (!hourlyRate || !hours) {
       return json({ error: "MISSING_RATE_OR_HOURS", message: "Agree a rate and hours first" }, 400);
