@@ -20,6 +20,7 @@ export async function SiteHeader() {
     { href: "/sitters", label: t.findSitters },
     { href: "/jobs", label: t.jobs },
     { href: "/pricing", label: t.pricing },
+    ...(user?.role === "PARENT" ? [{ href: "/my-jobs", label: t.myJobs }] : []),
     ...(user?.role === "PARENT" ? [{ href: "/favorites", label: t.favorites }] : []),
     ...(user ? [{ href: "/dashboard", label: t.dashboard }] : []),
     ...(user ? [{ href: "/chat", label: t.chat }] : []),

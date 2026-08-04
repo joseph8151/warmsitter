@@ -16,6 +16,7 @@ const dictionaries = {
     nav: {
       findSitters: "시터 찾기",
       jobs: "구인글",
+      myJobs: "내 구인글",
       favorites: "찜",
       pricing: "요금제",
       dashboard: "대시보드",
@@ -113,6 +114,7 @@ const dictionaries = {
     nav: {
       findSitters: "Find sitters",
       jobs: "Jobs",
+      myJobs: "My jobs",
       favorites: "Saved",
       pricing: "Pricing",
       dashboard: "Dashboard",
