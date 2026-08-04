@@ -58,6 +58,10 @@ const dictionaries = {
       teaserPremium: "멤버십",
       teaserPremiumDesc: "무제한 + 우선 노출 뱃지 및 추가 혜택.",
       viewPlans: "모든 요금제 보기",
+      sitterCtaKicker: "시터 모집",
+      sitterCtaTitle: "시터세요? 무료로 등록하세요",
+      sitterCtaDesc: "등록·프로필·검색 노출 모두 무료예요. 부모와 연결되어 돌봄 일감을 받아보세요.",
+      sitterCtaButton: "시터로 무료 등록",
     },
     pricing: {
       title: "간단하고 합리적인 요금",
@@ -156,6 +160,10 @@ const dictionaries = {
       teaserPremium: "Membership",
       teaserPremiumDesc: "Unlimited everything + priority badge & perks.",
       viewPlans: "View all plans",
+      sitterCtaKicker: "For sitters",
+      sitterCtaTitle: "Are you a sitter? Join free",
+      sitterCtaDesc: "Registration, your profile, and search visibility are all free. Get matched with families and start earning.",
+      sitterCtaButton: "Become a sitter — free",
     },
     pricing: {
       title: "Simple, fair pricing",

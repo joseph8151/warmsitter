@@ -2,9 +2,9 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { SitterProfileForm } from "@/components/SitterProfileForm";
 import { VerificationPanel } from "@/components/VerificationPanel";
 import { AvailabilityEditor } from "@/components/AvailabilityEditor";
-import { won } from "@/lib/format";
 import { getLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +41,12 @@ export default async function ProfilePage() {
       </section>
 
       <section className="ws-card p-6">
+        <h2 className="mb-1 font-bold text-slate-900">시터 정보</h2>
+        <p className="mb-4 text-sm text-slate-500">시급·지역·경력·소개를 입력하면 검색에 노출됩니다. 등록은 무료예요.</p>
+        <SitterProfileForm />
+      </section>
+
+      <section className="ws-card p-6">
         <h2 className="mb-4 font-bold text-slate-900">신원확인</h2>
         <VerificationPanel />
       </section>
@@ -51,25 +57,6 @@ export default async function ProfilePage() {
         <AvailabilityEditor locale={getLocale()} />
       </section>
 
-      <section className="ws-card p-6">
-        <h2 className="font-bold text-slate-900">프로필 정보</h2>
-        <dl className="mt-3 space-y-2 text-sm">
-          <Row k="이름" v={user.name} />
-          <Row k="시급" v={won(profile?.hourlyRate ?? 0)} />
-          <Row k="지역" v={profile?.city ?? "-"} />
-          <Row k="경력" v={`${profile?.yearsOfExp ?? 0}년`} />
-          <Row k="인증" v={profile?.verified ? "✔ 인증됨" : "미인증"} />
-        </dl>
-      </section>
-    </div>
-  );
-}
-
-function Row({ k, v }: { k: string; v: string }) {
-  return (
-    <div className="flex justify-between border-b border-sky-50 pb-2">
-      <dt className="text-slate-500">{k}</dt>
-      <dd className="font-medium text-slate-900">{v}</dd>
     </div>
   );
 }

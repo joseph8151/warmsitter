@@ -97,7 +97,9 @@ export default async function DashboardPage() {
     );
   } else if (user.role === "SITTER") {
     const profile = await prisma.sitterProfile.findUnique({ where: { userId: user.id } });
+    const infoDone = Boolean(profile && (profile.bio || profile.city));
     checklist.push(
+      { label: "시터 정보 입력 (시급·지역·소개)", done: infoDone, href: "/profile", cta: "입력" },
       { label: "프로필 사진 등록하기", done: Boolean(profile?.photoUrl), href: "/profile", cta: "등록" },
       { label: "신원확인 받기", done: Boolean(profile?.verified), href: "/profile", cta: "인증" },
       { label: "구인글에 지원하기", done: false, href: "/jobs", cta: "둘러보기" }

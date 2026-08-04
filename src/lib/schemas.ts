@@ -121,6 +121,13 @@ export const bookingRespondSchema = z.object({
   action: z.enum(["CONFIRM", "DECLINE"]),
 });
 
+export const sitterProfileSchema = z.object({
+  bio: z.string().max(1000).optional(),
+  hourlyRate: z.number().int().min(1000).max(1_000_000),
+  yearsOfExp: z.number().int().min(0).max(60),
+  city: z.string().max(80).optional(),
+});
+
 export const availabilitySchema = z.object({
   slots: z
     .array(

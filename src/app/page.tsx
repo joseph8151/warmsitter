@@ -95,6 +95,21 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Become a sitter (free) */}
+      <section className="ws-card flex flex-col items-center gap-4 bg-gradient-to-r from-sky-500 to-sky-400 p-8 text-center text-white md:flex-row md:justify-between md:text-left">
+        <div>
+          <p className="text-sm font-semibold text-sky-50">{t.sitterCtaKicker}</p>
+          <h2 className="mt-1 text-2xl font-extrabold">{t.sitterCtaTitle}</h2>
+          <p className="mt-1 max-w-xl text-sky-50">{t.sitterCtaDesc}</p>
+        </div>
+        <Link
+          href="/login"
+          className="shrink-0 rounded-full bg-white px-6 py-3 font-bold text-sky-600 shadow-card hover:bg-sky-50"
+        >
+          {t.sitterCtaButton}
+        </Link>
+      </section>
     </div>
   );
 }
