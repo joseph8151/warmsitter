@@ -30,8 +30,14 @@ must configure before going live.
 - Real auth via **Supabase** (`src/lib/auth.ts`); JIT user provisioning.
 - **Demo login is hard-disabled** in production and whenever Supabase is
   configured (`isDemoLoginAllowed()`), so it can't be used for account takeover.
+- **Roles are never trusted from `user_metadata`** (which the user can write via
+  `supabase.auth.updateUser`). Self-provisioning is clamped to `PARENT`/`SITTER`;
+  `ADMIN` is only assignable out-of-band (seed / DB). This closes a privilege-
+  escalation-to-admin path.
 - Per-resource ownership checks: chat membership, job ownership, sitter-only /
-  admin-only routes, settlement transitions (`canTransitionSettlement`).
+  admin-only routes, settlement transitions (`canTransitionSettlement`), and
+  **review authorization** (only a job's parties may review the counterparty, and
+  only after the job is `COMPLETED`) to prevent rating fraud.
 
 ### Payments
 - Toss confirm verifies the amount matches the created order (anti-tampering).

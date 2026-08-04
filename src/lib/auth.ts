@@ -37,8 +37,13 @@ async function getUserFromSupabase(): Promise<User | null> {
   const name =
     (authUser.user_metadata?.name as string | undefined) ??
     email.split("@")[0];
-  const desiredRole =
-    (authUser.user_metadata?.role as User["role"] | undefined) ?? "PARENT";
+
+  // SECURITY: user_metadata is writable by the end user themselves
+  // (supabase.auth.updateUser), so we must NEVER trust it for privileged roles.
+  // Only allow self-provisioning as PARENT or SITTER; ADMIN is never granted via
+  // signup — it must be assigned out-of-band (seed / DB / trusted admin process).
+  const requestedRole = authUser.user_metadata?.role;
+  const desiredRole: User["role"] = requestedRole === "SITTER" ? "SITTER" : "PARENT";
 
   // 1) Already linked by Supabase auth id.
   const byAuthId = await prisma.user.findUnique({ where: { authId: authUser.id } });
