@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { deductForAction } from "@/lib/billing";
 import { startChatSchema } from "@/lib/schemas";
 import { enforceRateLimit } from "@/lib/security";
+import { areBlocked } from "@/lib/blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,10 @@ export async function POST(req: Request) {
     const user = await requireUser();
     enforceRateLimit(req, "billable", user.id);
     const { sitterId, jobId } = startChatSchema.parse(await req.json());
+
+    if (await areBlocked(user.id, sitterId)) {
+      return json({ error: "BLOCKED", message: "차단된 사용자와는 대화할 수 없습니다." }, 403);
+    }
 
     // Reuse an existing room (no double charge — idempotent on the room id too).
     const existing = await prisma.chatRoom.findFirst({

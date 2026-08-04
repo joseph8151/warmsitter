@@ -5,6 +5,7 @@ import { deductForAction } from "@/lib/billing";
 import { proposeInterviewSchema } from "@/lib/schemas";
 import { notify } from "@/lib/notify";
 import { enforceRateLimit } from "@/lib/security";
+import { areBlocked } from "@/lib/blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,10 @@ export async function POST(req: Request) {
     const user = await requireUser();
     enforceRateLimit(req, "billable", user.id);
     const body = proposeInterviewSchema.parse(await req.json());
+
+    if (await areBlocked(user.id, body.sitterId)) {
+      return json({ error: "BLOCKED", message: "차단된 사용자에게는 면접을 제안할 수 없습니다." }, 403);
+    }
 
     // Create the interview first so we have a stable refId for idempotent billing.
     const interview = await prisma.interview.create({

@@ -31,6 +31,7 @@ export default async function AdminHomePage() {
     pendingVerifications,
     pendingSettlements,
     paidSettlements,
+    openReports,
     settings,
   ] = await Promise.all([
     prisma.payment.aggregate({
@@ -46,6 +47,7 @@ export default async function AdminHomePage() {
     prisma.sitterVerification.count({ where: { status: "PENDING" } }),
     prisma.settlement.count({ where: { status: "PENDING" } }),
     prisma.settlement.aggregate({ where: { status: { in: ["PAID", "COMPLETED"] } }, _sum: { netAmount: true } }),
+    prisma.report.count({ where: { status: { in: ["OPEN", "REVIEWING"] } } }),
     getSettings(),
   ]);
 
@@ -85,6 +87,7 @@ export default async function AdminHomePage() {
           count={pendingSettlements}
           cta="정산하기"
         />
+        <QueueCard href="/admin/reports" title="신고 처리" count={openReports} cta="검토하기" />
         <QueueCard href="/admin/settings" title="수익 설정" count={null} cta="설정 열기" />
       </div>
     </div>

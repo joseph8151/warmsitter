@@ -57,6 +57,10 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **Sitter profiles & favorites** — public `/sitters/[id]` profile with bio, rating,
   reviews, and connect actions; parents can save sitters (❤ `Favorite` model,
   `/api/favorites`) and view them at `/favorites`.
+- **Safety: report & block** — users report others (`Report` model, admin queue at
+  `/admin/reports`) and block them (`Block` model). Blocks are mutual: they cut off
+  chat, messaging, and interview proposals, and hide the user from search
+  (`src/lib/blocks.ts`).
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).

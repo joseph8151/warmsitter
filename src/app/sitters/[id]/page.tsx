@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { won, formatDate } from "@/lib/format";
 import { SitterProfileActions } from "@/components/SitterProfileActions";
+import { ReportBlockMenu } from "@/components/ReportBlockMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,16 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
           })
         )
       : false;
+
+  // Show safety controls to any logged-in user viewing someone else's profile.
+  const canModerate = Boolean(user && user.id !== params.id);
+  const blocked = canModerate
+    ? Boolean(
+        await prisma.block.findUnique({
+          where: { blockerId_blockedId: { blockerId: user!.id, blockedId: params.id } },
+        })
+      )
+    : false;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -79,6 +90,10 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
         <div className="mt-5">
           <SitterProfileActions sitterId={profile.userId} favorited={favorited} />
         </div>
+
+        {canModerate && (
+          <ReportBlockMenu targetId={profile.userId} targetName={profile.user.name} initialBlocked={blocked} />
+        )}
       </div>
 
       {/* Reviews */}

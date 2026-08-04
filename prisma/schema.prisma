@@ -121,6 +121,21 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum ReportReason {
+  INAPPROPRIATE
+  HARASSMENT
+  SPAM
+  SAFETY
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
 enum NotificationType {
   APPLICATION_RECEIVED
   APPLICATION_ACCEPTED
@@ -183,6 +198,10 @@ model User {
   pushSubscriptions PushSubscription[]
   favorites     Favorite[] @relation("ParentFavorites")
   favoritedBy   Favorite[] @relation("SitterFavoritedBy")
+  reportsMade    Report[] @relation("Reporter")
+  reportsAgainst Report[] @relation("Reported")
+  blocksMade     Block[]  @relation("Blocker")
+  blockedBy      Block[]  @relation("Blocked")
 }
 
 model ParentProfile {
@@ -465,6 +484,37 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// User safety: reports (reviewed by admins) and blocks (mutual interaction cut).
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedId String
+  reported   User         @relation("Reported", fields: [reportedId], references: [id], onDelete: Cascade)
+  reason     ReportReason
+  detail     String?
+  status     ReportStatus @default(OPEN)
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([reportedId])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
 }
 
 // A parent bookmarking a sitter.

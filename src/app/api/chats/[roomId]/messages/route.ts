@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { messageSchema } from "@/lib/schemas";
 import { notify } from "@/lib/notify";
 import { enforceRateLimit } from "@/lib/security";
+import { areBlocked } from "@/lib/blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -45,12 +46,17 @@ export async function POST(req: Request, { params }: { params: { roomId: string 
     if (!room) return json({ error: "FORBIDDEN" }, 403);
 
     const { body } = messageSchema.parse(await req.json());
+
+    const recipientId = room.parentId === user.id ? room.sitterId : room.parentId;
+    if (await areBlocked(user.id, recipientId)) {
+      return json({ error: "BLOCKED", message: "차단된 사용자와는 대화할 수 없습니다." }, 403);
+    }
+
     const message = await prisma.message.create({
       data: { roomId: room.id, senderId: user.id, body },
       include: { sender: { select: { id: true, name: true } } },
     });
 
-    const recipientId = room.parentId === user.id ? room.sitterId : room.parentId;
     await notify({
       userId: recipientId,
       type: "MESSAGE_RECEIVED",

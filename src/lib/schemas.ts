@@ -89,6 +89,20 @@ export const messageSchema = z.object({
   body: z.string().min(1).max(4000),
 });
 
+export const reportSchema = z.object({
+  reportedId: z.string().min(1),
+  reason: z.enum(["INAPPROPRIATE", "HARASSMENT", "SPAM", "SAFETY", "OTHER"]),
+  detail: z.string().max(2000).optional(),
+});
+
+export const blockSchema = z.object({
+  userId: z.string().min(1),
+});
+
+export const reportStatusSchema = z.object({
+  status: z.enum(["REVIEWING", "RESOLVED", "DISMISSED"]),
+});
+
 export const createJobSchema = z.object({
   title: z.string().min(2).max(120),
   description: z.string().max(2000).optional(),

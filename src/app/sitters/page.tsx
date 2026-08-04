@@ -5,6 +5,7 @@ import { SitterCard } from "@/components/SitterCard";
 import { SitterFilters } from "@/components/SitterFilters";
 import { format, getDictionary, getLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
+import { blockedUserIds } from "@/lib/blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -17,12 +18,19 @@ export default async function SittersPage({
   searchParams: { city?: string; maxRate?: string; minRating?: string; verified?: string; page?: string };
 }) {
   const page = Math.max(1, Number(searchParams.page ?? "1") || 1);
+  const user = await getCurrentUser();
 
   const where: Prisma.SitterProfileWhereInput = {};
   if (searchParams.city) where.city = { contains: searchParams.city, mode: "insensitive" };
   if (searchParams.maxRate) where.hourlyRate = { lte: Number(searchParams.maxRate) };
   if (searchParams.minRating) where.ratingAvg = { gte: Number(searchParams.minRating) };
   if (searchParams.verified === "1") where.verified = true;
+
+  // Hide sitters blocked by (or who blocked) the current user.
+  if (user) {
+    const blocked = await blockedUserIds(user.id);
+    if (blocked.size > 0) where.userId = { notIn: [...blocked] };
+  }
 
   const [total, sitters] = await Promise.all([
     prisma.sitterProfile.count({ where }),
@@ -40,7 +48,6 @@ export default async function SittersPage({
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   // Which of the listed sitters has the current parent already favorited?
-  const user = await getCurrentUser();
   let favoritedSet = new Set<string>();
   if (user?.role === "PARENT" && sitters.length > 0) {
     const favs = await prisma.favorite.findMany({
