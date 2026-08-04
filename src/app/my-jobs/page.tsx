@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { won, formatDate } from "@/lib/format";
 import { PayButton } from "@/components/PayButton";
+import { EmptyState } from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +64,13 @@ export default async function MyJobsPage() {
       </div>
 
       {jobs.length === 0 ? (
-        <div className="ws-card mt-6 p-10 text-center text-slate-500">
-          아직 올린 구인글이 없습니다.{" "}
-          <Link href="/jobs/new" className="text-sky-600 underline">첫 구인글 작성하기</Link>
+        <div className="mt-6">
+          <EmptyState
+            icon="📝"
+            title="아직 올린 구인글이 없어요"
+            description="첫 구인글을 올리고 우리 동네 시터의 지원을 받아보세요."
+            cta={{ href: "/jobs/new", label: "첫 구인글 작성하기" }}
+          />
         </div>
       ) : (
         <div className="mt-6 space-y-3">

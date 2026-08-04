@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
+import { EmptyState } from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,17 @@ export default async function ChatListPage() {
     <div className="mx-auto max-w-2xl">
       <h1 className="text-3xl font-extrabold text-slate-900">대화</h1>
       {rooms.length === 0 ? (
-        <div className="ws-card mt-6 p-10 text-center text-slate-500">
-          아직 대화가 없습니다. <Link href="/sitters" className="text-sky-600 underline">시터 찾기</Link>에서 채팅을 시작해보세요.
+        <div className="mt-6">
+          <EmptyState
+            icon="💬"
+            title="아직 대화가 없어요"
+            description={
+              user.role === "SITTER"
+                ? "구인글에 지원하거나 부모의 연락을 받으면 여기서 대화가 시작돼요."
+                : "마음에 드는 시터와 채팅을 시작하면 여기 모여요."
+            }
+            cta={user.role === "SITTER" ? { href: "/jobs", label: "구인글 보기" } : { href: "/sitters", label: "시터 찾기" }}
+          />
         </div>
       ) : (
         <div className="mt-6 space-y-2">

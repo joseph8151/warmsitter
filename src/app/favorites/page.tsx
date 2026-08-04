@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { SitterCard } from "@/components/SitterCard";
+import { EmptyState } from "@/components/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -45,8 +46,13 @@ export default async function FavoritesPage() {
       <p className="mt-1 text-slate-600">마음에 든 시터를 저장해두고 빠르게 연결하세요.</p>
 
       {favorites.length === 0 ? (
-        <div className="ws-card mt-6 p-10 text-center text-slate-500">
-          아직 찜한 시터가 없습니다. <Link href="/sitters" className="text-sky-600 underline">시터 찾기</Link>에서 ♡ 를 눌러보세요.
+        <div className="mt-6">
+          <EmptyState
+            icon="💙"
+            title="아직 찜한 시터가 없어요"
+            description="마음에 드는 시터의 하트를 눌러 저장해두면 여기 모여요."
+            cta={{ href: "/sitters", label: "시터 찾기" }}
+          />
         </div>
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

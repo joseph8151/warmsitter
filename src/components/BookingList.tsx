@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/client/api";
 import { won, formatDate } from "@/lib/format";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Booking {
   id: string;
@@ -68,9 +69,12 @@ export function BookingList() {
   if (!bookings) return <div className="h-40 animate-pulse rounded-xl2 bg-sky-50" />;
   if (bookings.length === 0)
     return (
-      <div className="ws-card p-10 text-center text-slate-500">
-        예약이 없습니다. 채팅에서 “📅 일정 예약”으로 제안해보세요.
-      </div>
+      <EmptyState
+        icon="📅"
+        title="예약이 없어요"
+        description="채팅에서 “📅 일정 예약”으로 돌봄 일정을 제안하면 여기에 표시돼요."
+        cta={{ href: "/chat", label: "대화로 이동" }}
+      />
     );
 
   return (
