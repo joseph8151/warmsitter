@@ -71,6 +71,11 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **Sitter availability** — sitters set a weekly day×time-slot grid
   (`AvailabilitySlot`, editor on `/profile`, `/api/availability`); shown on the
   profile and filterable in search (`?day=&slot=`).
+- **Bookings** — either party proposes a care booking from chat (date/hours/rate),
+  the counterparty confirms/declines (`Booking` model, `/bookings`,
+  `/api/bookings`). Confirming writes the agreed rate/hours + matched sitter onto
+  the linked job, so the existing payment flow can charge it. Blocks/notifications
+  apply.
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).

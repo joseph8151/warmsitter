@@ -115,6 +115,14 @@ enum WorkLogStatus {
   DISPUTED
 }
 
+enum BookingStatus {
+  PROPOSED
+  CONFIRMED
+  COMPLETED
+  CANCELED
+  DECLINED
+}
+
 enum VerificationStatus {
   PENDING
   APPROVED
@@ -152,6 +160,7 @@ enum NotificationType {
   SETTLEMENT_PAID
   VERIFICATION_RESULT
   TICKET_EXPIRING
+  BOOKING_UPDATE
   SYSTEM
 }
 
@@ -214,6 +223,8 @@ model User {
   blocksMade     Block[]  @relation("Blocker")
   blockedBy      Block[]  @relation("Blocked")
   availability   AvailabilitySlot[] @relation("SitterAvailability")
+  bookingsAsParent Booking[] @relation("ParentBookings")
+  bookingsAsSitter Booking[] @relation("SitterBookings")
 }
 
 model ParentProfile {
@@ -395,6 +406,7 @@ model JobPost {
   payments     Payment[]
   settlements  Settlement[]
   reviews      Review[]
+  bookings     Booking[]
 
   @@index([status])
 }
@@ -496,6 +508,30 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// A concrete care booking agreed between a parent and a sitter. One party
+// proposes; the counterparty confirms. Confirming writes the agreed rate/hours
+// onto the linked job so the existing payment flow can charge it.
+model Booking {
+  id            String        @id @default(cuid())
+  jobId         String?
+  job           JobPost?      @relation(fields: [jobId], references: [id])
+  parentId      String
+  parent        User          @relation("ParentBookings", fields: [parentId], references: [id])
+  sitterId      String
+  sitter        User          @relation("SitterBookings", fields: [sitterId], references: [id])
+  proposedById  String        // whoever created the proposal
+  scheduledDate DateTime
+  hours         Float
+  hourlyRate    Int
+  note          String?
+  status        BookingStatus @default(PROPOSED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([parentId, status])
+  @@index([sitterId, status])
 }
 
 // A sitter's recurring weekly availability (day-of-week x time slot).

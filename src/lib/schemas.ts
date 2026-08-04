@@ -108,6 +108,19 @@ export const preferencesSchema = z
     message: "No preference provided",
   });
 
+export const createBookingSchema = z.object({
+  counterpartyId: z.string().min(1),
+  jobId: z.string().optional(),
+  scheduledDate: z.string().datetime(),
+  hours: z.number().positive().max(24),
+  hourlyRate: z.number().int().positive().max(1_000_000),
+  note: z.string().max(1000).optional(),
+});
+
+export const bookingRespondSchema = z.object({
+  action: z.enum(["CONFIRM", "DECLINE"]),
+});
+
 export const availabilitySchema = z.object({
   slots: z
     .array(

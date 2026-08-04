@@ -22,6 +22,7 @@ const EMAILABLE: ReadonlySet<NotificationType> = new Set<NotificationType>([
   "SETTLEMENT_PAID",
   "VERIFICATION_RESULT",
   "TICKET_EXPIRING",
+  "BOOKING_UPDATE",
   "SYSTEM",
 ]);
 

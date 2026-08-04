@@ -20,6 +20,7 @@ export async function SiteHeader() {
     ...(user?.role === "PARENT" ? [{ href: "/favorites", label: t.favorites }] : []),
     ...(user ? [{ href: "/dashboard", label: t.dashboard }] : []),
     ...(user ? [{ href: "/chat", label: t.chat }] : []),
+    ...(user ? [{ href: "/bookings", label: t.bookings }] : []),
     ...(user ? [{ href: "/interviews", label: t.interviews }] : []),
     ...(user?.role === "SITTER" ? [{ href: "/profile", label: t.profile }] : []),
     ...(user?.role === "ADMIN" ? [{ href: "/admin", label: t.admin }] : []),

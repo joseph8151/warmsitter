@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { subscribeToRoom, type ChatMessage, type RoomChannel } from "@/lib/client/realtime";
+import { BookingProposeButton } from "./BookingProposeButton";
 
 // Realtime chat room. Uses Supabase Broadcast when configured; otherwise falls
 // back to polling every 4s. Messages are persisted via the REST API either way.
@@ -10,10 +11,14 @@ export function ChatRoom({
   roomId,
   currentUserId,
   otherName,
+  otherId,
+  jobId,
 }: {
   roomId: string;
   currentUserId: string;
   otherName: string;
+  otherId: string;
+  jobId?: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -84,8 +89,9 @@ export function ChatRoom({
 
   return (
     <div className="ws-card flex h-[70vh] flex-col overflow-hidden">
-      <div className="border-b border-sky-100 bg-white/70 px-4 py-3 font-bold text-slate-900">
-        {otherName}님과의 대화
+      <div className="flex items-center justify-between border-b border-sky-100 bg-white/70 px-4 py-3">
+        <span className="font-bold text-slate-900">{otherName}님과의 대화</span>
+        <BookingProposeButton counterpartyId={otherId} jobId={jobId} />
       </div>
 
       <div className="flex-1 space-y-2 overflow-y-auto p-4">

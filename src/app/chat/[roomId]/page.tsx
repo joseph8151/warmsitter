@@ -33,7 +33,13 @@ export default async function ChatRoomPage({ params }: { params: { roomId: strin
     <div className="mx-auto max-w-2xl">
       <Link href="/chat" className="text-sm text-sky-600 hover:underline">← 대화 목록</Link>
       <div className="mt-3">
-        <ChatRoom roomId={room.id} currentUserId={user.id} otherName={other.name} />
+        <ChatRoom
+          roomId={room.id}
+          currentUserId={user.id}
+          otherName={other.name}
+          otherId={other.id}
+          jobId={room.jobId ?? undefined}
+        />
       </div>
     </div>
   );

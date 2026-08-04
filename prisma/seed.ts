@@ -175,6 +175,24 @@ async function main() {
     update: {},
   });
 
+  // A demo booking proposed by Emma for the Tuesday job (awaiting parent confirm).
+  const existingBooking = await prisma.booking.findFirst({ where: { jobId: "seed-job-1" } });
+  if (!existingBooking) {
+    await prisma.booking.create({
+      data: {
+        jobId: "seed-job-1",
+        parentId: parent1.id,
+        sitterId: emma.id,
+        proposedById: emma.id,
+        scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        hours: 3,
+        hourlyRate: 18000,
+        note: "화요일 오후 3시부터 3시간 어떠세요?",
+        status: "PROPOSED",
+      },
+    });
+  }
+
   // A couple of demo notifications for the bell.
   const noteCount = await prisma.notification.count({ where: { userId: parent1.id } });
   if (noteCount === 0) {
