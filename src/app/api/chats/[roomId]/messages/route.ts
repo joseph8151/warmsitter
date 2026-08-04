@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { messageSchema } from "@/lib/schemas";
 import { notify } from "@/lib/notify";
+import { enforceRateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export async function GET(req: Request, { params }: { params: { roomId: string }
 export async function POST(req: Request, { params }: { params: { roomId: string } }) {
   try {
     const user = await requireUser();
+    enforceRateLimit(req, "write", user.id);
     const room = await authorizeRoom(params.roomId, user.id);
     if (!room) return json({ error: "FORBIDDEN" }, 403);
 

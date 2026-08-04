@@ -3,6 +3,7 @@ import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { deductForAction } from "@/lib/billing";
 import { startChatSchema } from "@/lib/schemas";
+import { enforceRateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
+    enforceRateLimit(req, "billable", user.id);
     const { sitterId, jobId } = startChatSchema.parse(await req.json());
 
     // Reuse an existing room (no double charge — idempotent on the room id too).

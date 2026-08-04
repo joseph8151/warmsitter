@@ -2,6 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
 import { uploadFile, UploadError, type UploadKind } from "@/lib/storage";
+import { enforceRateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ const VALID_KINDS: UploadKind[] = ["avatar", "worklog", "verification"];
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
+    enforceRateLimit(req, "upload", user.id);
     const form = await req.formData();
     const kind = String(form.get("kind") ?? "") as UploadKind;
     const file = form.get("file");

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { deductForAction } from "@/lib/billing";
 import { proposeInterviewSchema } from "@/lib/schemas";
 import { notify } from "@/lib/notify";
+import { enforceRateLimit } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
+    enforceRateLimit(req, "billable", user.id);
     const body = proposeInterviewSchema.parse(await req.json());
 
     // Create the interview first so we have a stable refId for idempotent billing.

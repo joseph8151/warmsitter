@@ -1,6 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { handleError, json } from "@/lib/api";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/security";
 import { z } from "zod";
 
 const schema = z.object({
@@ -12,6 +13,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const user = await requireUser();
+    enforceRateLimit(req, "write", user.id);
     const { endpoint, keys } = schema.parse(await req.json());
 
     await prisma.pushSubscription.upsert({

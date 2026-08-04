@@ -71,8 +71,12 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   dialogs (`useFocusTrap` in Modal + mobile nav with Escape-to-close and focus restore),
   labeled form controls (`aria-label`/`autoComplete`), and a `radiogroup` star rating.
 - **i18n (한국어 / English)** — cookie-based locale (`src/lib/i18n.ts`) with a header
-  language switcher. The public front door (nav, footer, landing) is fully bilingual;
-  `<html lang>` follows the locale. Authenticated screens extend via the same dictionary.
+  language switcher. The public front door (nav, footer, landing, pricing, sitter
+  search, login) is fully bilingual; `<html lang>` follows the locale.
+- **Security** — CSP + security headers, same-origin CSRF guard (middleware),
+  rate limiting on sensitive endpoints, production-disabled demo login, private
+  ID-document storage with signed URLs, signature-verified webhooks. See
+  [`SECURITY.md`](./SECURITY.md).
 
 ---
 

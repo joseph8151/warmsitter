@@ -4,6 +4,7 @@ import { AuthError } from "./auth";
 import { InsufficientCreditError } from "./billing";
 import { TossError } from "./toss";
 import { UploadError } from "./storage";
+import { RateLimitError } from "./security";
 
 export function json<T>(data: T, init?: number | ResponseInit) {
   const responseInit = typeof init === "number" ? { status: init } : init;
@@ -35,6 +36,12 @@ export function handleError(err: unknown) {
   }
   if (err instanceof UploadError) {
     return json({ error: "UPLOAD_ERROR", message: err.message }, err.status);
+  }
+  if (err instanceof RateLimitError) {
+    return json(
+      { error: "RATE_LIMITED", message: err.message },
+      { status: 429, headers: { "Retry-After": String(err.retryAfterSeconds) } }
+    );
   }
   // eslint-disable-next-line no-console
   console.error("[api] unhandled error", err);
