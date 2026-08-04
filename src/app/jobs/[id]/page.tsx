@@ -85,6 +85,12 @@ export default async function JobDetailPage({ params }: { params: { id: string }
                       {won(a.sitter.sitterProfile?.hourlyRate ?? 0)}/시간 · ⭐ {(a.sitter.sitterProfile?.ratingAvg ?? 0).toFixed(1)}
                     </p>
                     {a.message && <p className="mt-1 text-sm text-slate-600">“{a.message}”</p>}
+                    <Link
+                      href={`/sitters/${a.sitter.id}`}
+                      className="mt-1 inline-block text-sm font-medium text-sky-600 hover:underline"
+                    >
+                      프로필 보기 →
+                    </Link>
                   </div>
                   <AcceptApplicationButton applicationId={a.id} accepted={a.status === "ACCEPTED"} />
                 </div>
