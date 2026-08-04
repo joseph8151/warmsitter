@@ -80,6 +80,8 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,
   unit-tested helper (`src/lib/receipts.ts`).
+- **Sitter earnings** — `/earnings` (sitter-only): total / this-month / pending
+  payout metrics + settlement history and a CSV export (`/api/earnings/export`).
 - **Image optimization** — avatars & work-log photos render via `next/image`
   (Supabase hosts allow-listed in `next.config.mjs`).
 - **PWA (installable)** — web app manifest (`src/app/manifest.ts`), a service worker

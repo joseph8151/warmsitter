@@ -61,6 +61,31 @@ export function paymentsToCsv(rows: ReceiptRow[]): string {
   return lines.join("\r\n");
 }
 
+export interface SettlementRow {
+  createdAt: string | Date;
+  jobTitle?: string | null;
+  grossAmount: number;
+  platformFee: number;
+  netAmount: number;
+  status: string;
+}
+
+const SETTLEMENT_HEADERS = ["date", "job", "gross", "platformFee", "net", "status"] as const;
+
+// Serialize a sitter's settlements (earnings) to CSV.
+export function settlementsToCsv(rows: SettlementRow[]): string {
+  const lines = [SETTLEMENT_HEADERS.join(",")];
+  for (const r of rows) {
+    const d = typeof r.createdAt === "string" ? new Date(r.createdAt) : r.createdAt;
+    lines.push(
+      [d.toISOString(), r.jobTitle ?? "", r.grossAmount, r.platformFee, r.netAmount, r.status]
+        .map(csvEscape)
+        .join(",")
+    );
+  }
+  return lines.join("\r\n");
+}
+
 // Human-readable label for a payment purpose (UI).
 export const PURPOSE_LABEL: Record<string, string> = {
   CARE_FEE: "돌봄비",

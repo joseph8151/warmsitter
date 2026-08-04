@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { csvEscape, paymentsToCsv } from "./receipts";
+import { csvEscape, paymentsToCsv, settlementsToCsv } from "./receipts";
 
 describe("csvEscape", () => {
   it("leaves plain values untouched", () => {
@@ -53,5 +53,24 @@ describe("paymentsToCsv", () => {
     const row = csv.split("\r\n")[1];
     // careFee, platformFee, sitterPayout, method are empty -> trailing commas
     expect(row).toBe("2026-08-03T00:00:00.000Z,ticket_1,TICKET,PAID,29000,,,,");
+  });
+});
+
+describe("settlementsToCsv", () => {
+  it("emits header + rows and quotes titles with commas", () => {
+    const csv = settlementsToCsv([
+      {
+        createdAt: new Date("2026-08-03T00:00:00Z"),
+        jobTitle: "Tue care, 2 kids",
+        grossAmount: 60000,
+        platformFee: 6000,
+        netAmount: 54000,
+        status: "PAID",
+      },
+    ]);
+    const lines = csv.split("\r\n");
+    expect(lines[0]).toBe("date,job,gross,platformFee,net,status");
+    expect(lines[1]).toContain('"Tue care, 2 kids"'); // comma -> quoted
+    expect(lines[1]).toContain("54000");
   });
 });
