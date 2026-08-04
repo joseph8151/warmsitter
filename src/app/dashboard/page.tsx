@@ -85,24 +85,34 @@ export default async function DashboardPage() {
     })
     .filter((v): v is { jobId: string; title: string; targetId: string; targetName: string } => Boolean(v));
 
-  // Role-based onboarding checklist.
+  // Role-based onboarding checklist. Each step reflects real completion state so
+  // the guidance clears itself as the user actually makes progress.
   const checklist: ChecklistItem[] = [];
   if (user.role === "PARENT") {
     const hasBalance = user.creditBalance > 0 || hasActiveTicket(user) || user.isPremium;
-    const jobCount = await prisma.jobPost.count({ where: { parentId: user.id } });
+    const [jobCount, viewedCount, favCount] = await Promise.all([
+      prisma.jobPost.count({ where: { parentId: user.id } }),
+      prisma.recentlyViewed.count({ where: { userId: user.id } }),
+      prisma.favorite.count({ where: { parentId: user.id } }),
+    ]);
     checklist.push(
-      { label: "마음에 드는 시터 찾기", done: false, href: "/sitters", cta: "검색" },
+      { label: "마음에 드는 시터 찾기", done: viewedCount > 0 || favCount > 0, href: "/sitters", cta: "검색" },
       { label: "이용권 또는 크레딧 준비하기", done: hasBalance, href: "/pricing", cta: "구매" },
       { label: "돌봄 구인글 올리기", done: jobCount > 0, href: "/jobs/new", cta: "작성" }
     );
   } else if (user.role === "SITTER") {
-    const profile = await prisma.sitterProfile.findUnique({ where: { userId: user.id } });
+    const [profile, slotCount, appCount] = await Promise.all([
+      prisma.sitterProfile.findUnique({ where: { userId: user.id } }),
+      prisma.availabilitySlot.count({ where: { sitterId: user.id } }),
+      prisma.application.count({ where: { sitterId: user.id } }),
+    ]);
     const infoDone = Boolean(profile && (profile.bio || profile.city));
     checklist.push(
       { label: "시터 정보 입력 (시급·지역·소개)", done: infoDone, href: "/profile", cta: "입력" },
       { label: "프로필 사진 등록하기", done: Boolean(profile?.photoUrl), href: "/profile", cta: "등록" },
+      { label: "가능 시간 등록하기", done: slotCount > 0, href: "/profile", cta: "선택" },
       { label: "신원확인 받기", done: Boolean(profile?.verified), href: "/profile", cta: "인증" },
-      { label: "구인글에 지원하기", done: false, href: "/jobs", cta: "둘러보기" }
+      { label: "구인글에 지원하기", done: appCount > 0, href: "/jobs", cta: "둘러보기" }
     );
   }
 
