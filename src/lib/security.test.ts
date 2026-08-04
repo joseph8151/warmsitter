@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { createRateLimiter } from "./security";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createRateLimiter, isDemoLoginAllowed } from "./security";
 
 describe("createRateLimiter (fixed window)", () => {
   it("allows up to the limit, then blocks", () => {
@@ -27,5 +27,33 @@ describe("createRateLimiter (fixed window)", () => {
     expect(hit("ip", t).ok).toBe(true);
     expect(hit("ip", t + 1000).ok).toBe(false); // still in window
     expect(hit("ip", t + 60_001).ok).toBe(true); // window passed
+  });
+});
+
+// The demo `ws_uid` cookie lets a request name any user by id — getCurrentUser()
+// only trusts it when this gate is open. It MUST be closed in production unless
+// explicitly opted in, or it becomes a full account-takeover hole.
+describe("isDemoLoginAllowed", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("is closed in production unless explicitly opted in", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ALLOW_DEMO_LOGIN", "");
+    expect(isDemoLoginAllowed()).toBe(false);
+  });
+
+  it("opens when ALLOW_DEMO_LOGIN=true even in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("ALLOW_DEMO_LOGIN", "true");
+    expect(isDemoLoginAllowed()).toBe(true);
+  });
+
+  it("is open in non-production without Supabase (local dev)", () => {
+    // In the test runtime Supabase is unconfigured, so a non-prod env allows demo.
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("ALLOW_DEMO_LOGIN", "");
+    expect(isDemoLoginAllowed()).toBe(true);
   });
 });

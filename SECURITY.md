@@ -30,6 +30,9 @@ must configure before going live.
 - Real auth via **Supabase** (`src/lib/auth.ts`); JIT user provisioning.
 - **Demo login is hard-disabled** in production and whenever Supabase is
   configured (`isDemoLoginAllowed()`), so it can't be used for account takeover.
+  This gate covers **both** the demo-login route *and* the consumption of the
+  `ws_uid` cookie in `getCurrentUser()` — when real auth is enabled the cookie is
+  never trusted, so a request can't impersonate an account by naming its id.
 - **Roles are never trusted from `user_metadata`** (which the user can write via
   `supabase.auth.updateUser`). Self-provisioning is clamped to `PARENT`/`SITTER`;
   `ADMIN` is only assignable out-of-band (seed / DB). This closes a privilege-

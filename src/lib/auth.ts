@@ -4,6 +4,7 @@ import type { User } from "@prisma/client";
 import { isSupabaseAuthEnabled } from "./supabase/config";
 import { createSupabaseServerClient } from "./supabase/server";
 import { resolveSelfProvisionRole } from "./authz";
+import { isDemoLoginAllowed } from "./security";
 
 // -----------------------------------------------------------------------------
 // Auth resolution.
@@ -22,8 +23,13 @@ export async function getCurrentUser(): Promise<User | null> {
   if (isSupabaseAuthEnabled) {
     const supabaseUser = await getUserFromSupabase();
     if (supabaseUser) return supabaseUser;
-    // Fall through to the demo cookie too, so demo logins still work in dev.
   }
+  // SECURITY: the `ws_uid` cookie lets a request name ANY user by id, so it must
+  // only ever be honored where demo login is explicitly allowed (local dev, or
+  // an opt-in ALLOW_DEMO_LOGIN). In production with real auth it is never
+  // trusted — otherwise anyone could impersonate any account (incl. ADMIN) by
+  // sending `Cookie: ws_uid=<victimId>` with no Supabase session.
+  if (!isDemoLoginAllowed()) return null;
   return getUserFromDemoCookie();
 }
 
