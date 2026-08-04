@@ -121,6 +121,13 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum TimeSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
 enum ReportReason {
   INAPPROPRIATE
   HARASSMENT
@@ -202,6 +209,7 @@ model User {
   reportsAgainst Report[] @relation("Reported")
   blocksMade     Block[]  @relation("Blocker")
   blockedBy      Block[]  @relation("Blocked")
+  availability   AvailabilitySlot[] @relation("SitterAvailability")
 }
 
 model ParentProfile {
@@ -484,6 +492,18 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@index([userId, read, createdAt])
+}
+
+// A sitter's recurring weekly availability (day-of-week x time slot).
+model AvailabilitySlot {
+  id        String   @id @default(cuid())
+  sitterId  String
+  sitter    User     @relation("SitterAvailability", fields: [sitterId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      // 0=Sun .. 6=Sat
+  slot      TimeSlot
+
+  @@unique([sitterId, dayOfWeek, slot])
+  @@index([dayOfWeek, slot])
 }
 
 // Append-only audit trail for sensitive/administrative actions.

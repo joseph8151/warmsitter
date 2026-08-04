@@ -3,7 +3,9 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { VerificationPanel } from "@/components/VerificationPanel";
+import { AvailabilityEditor } from "@/components/AvailabilityEditor";
 import { won } from "@/lib/format";
+import { getLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +43,12 @@ export default async function ProfilePage() {
       <section className="ws-card p-6">
         <h2 className="mb-4 font-bold text-slate-900">신원확인</h2>
         <VerificationPanel />
+      </section>
+
+      <section className="ws-card p-6">
+        <h2 className="mb-1 font-bold text-slate-900">가능 시간</h2>
+        <p className="mb-4 text-sm text-slate-500">돌봄이 가능한 요일·시간대를 선택하세요. 부모가 검색 시 참고합니다.</p>
+        <AvailabilityEditor locale={getLocale()} />
       </section>
 
       <section className="ws-card p-6">

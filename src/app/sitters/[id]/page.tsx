@@ -6,12 +6,15 @@ import { getCurrentUser } from "@/lib/auth";
 import { won, formatDate } from "@/lib/format";
 import { SitterProfileActions } from "@/components/SitterProfileActions";
 import { ReportBlockMenu } from "@/components/ReportBlockMenu";
+import { AvailabilityGrid } from "@/components/AvailabilityGrid";
+import { getLocale } from "@/lib/i18n";
+import type { TimeSlot } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
 // Public sitter profile: full details + reviews + connect actions.
 export default async function SitterDetailPage({ params }: { params: { id: string } }) {
-  const [profile, reviews, user] = await Promise.all([
+  const [profile, reviews, availability, user] = await Promise.all([
     prisma.sitterProfile.findUnique({
       where: { userId: params.id },
       include: { user: { select: { id: true, name: true, isPremium: true } } },
@@ -21,6 +24,10 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
       orderBy: { createdAt: "desc" },
       take: 20,
       include: { author: { select: { name: true } } },
+    }),
+    prisma.availabilitySlot.findMany({
+      where: { sitterId: params.id },
+      select: { dayOfWeek: true, slot: true },
     }),
     getCurrentUser(),
   ]);
@@ -94,6 +101,15 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
         {canModerate && (
           <ReportBlockMenu targetId={profile.userId} targetName={profile.user.name} initialBlocked={blocked} />
         )}
+      </div>
+
+      {/* Availability */}
+      <div className="ws-card p-6">
+        <h2 className="mb-3 font-bold text-slate-900">가능 시간</h2>
+        <AvailabilityGrid
+          slots={availability.map((a) => ({ dayOfWeek: a.dayOfWeek, slot: a.slot as TimeSlot }))}
+          locale={getLocale()}
+        />
       </div>
 
       {/* Reviews */}

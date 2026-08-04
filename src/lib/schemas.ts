@@ -99,6 +99,17 @@ export const blockSchema = z.object({
   userId: z.string().min(1),
 });
 
+export const availabilitySchema = z.object({
+  slots: z
+    .array(
+      z.object({
+        dayOfWeek: z.number().int().min(0).max(6),
+        slot: z.enum(["MORNING", "AFTERNOON", "EVENING", "NIGHT"]),
+      })
+    )
+    .max(28),
+});
+
 export const reportStatusSchema = z.object({
   status: z.enum(["REVIEWING", "RESOLVED", "DISMISSED"]),
 });

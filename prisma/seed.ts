@@ -153,6 +153,21 @@ async function main() {
     });
   }
 
+  // Emma's weekly availability (weekday afternoons/evenings + Sat morning).
+  const emmaSlots = [
+    { dayOfWeek: 2, slot: "AFTERNOON" as const },
+    { dayOfWeek: 2, slot: "EVENING" as const },
+    { dayOfWeek: 4, slot: "AFTERNOON" as const },
+    { dayOfWeek: 6, slot: "MORNING" as const },
+  ];
+  for (const s of emmaSlots) {
+    await prisma.availabilitySlot.upsert({
+      where: { sitterId_dayOfWeek_slot: { sitterId: emma.id, dayOfWeek: s.dayOfWeek, slot: s.slot } },
+      create: { sitterId: emma.id, dayOfWeek: s.dayOfWeek, slot: s.slot },
+      update: {},
+    });
+  }
+
   // parent1 saved Emma.
   await prisma.favorite.upsert({
     where: { parentId_sitterId: { parentId: parent1.id, sitterId: emma.id } },

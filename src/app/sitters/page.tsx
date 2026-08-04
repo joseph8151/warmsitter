@@ -6,6 +6,7 @@ import { SitterFilters } from "@/components/SitterFilters";
 import { format, getDictionary, getLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth";
 import { blockedUserIds } from "@/lib/blocks";
+import { DAY_LABELS, SLOT_LABELS, TIME_SLOTS } from "@/lib/availability";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,15 @@ const PAGE_SIZE = 12;
 export default async function SittersPage({
   searchParams,
 }: {
-  searchParams: { city?: string; maxRate?: string; minRating?: string; verified?: string; page?: string };
+  searchParams: {
+    city?: string;
+    maxRate?: string;
+    minRating?: string;
+    verified?: string;
+    day?: string;
+    slot?: string;
+    page?: string;
+  };
 }) {
   const page = Math.max(1, Number(searchParams.page ?? "1") || 1);
   const user = await getCurrentUser();
@@ -25,6 +34,23 @@ export default async function SittersPage({
   if (searchParams.maxRate) where.hourlyRate = { lte: Number(searchParams.maxRate) };
   if (searchParams.minRating) where.ratingAvg = { gte: Number(searchParams.minRating) };
   if (searchParams.verified === "1") where.verified = true;
+
+  // Availability filter: sitters available on a given day and/or time slot.
+  const dayNum = searchParams.day !== undefined && searchParams.day !== "" ? Number(searchParams.day) : undefined;
+  const slotVal = (TIME_SLOTS as readonly string[]).includes(searchParams.slot ?? "")
+    ? searchParams.slot
+    : undefined;
+  if ((dayNum !== undefined && !Number.isNaN(dayNum)) || slotVal) {
+    // availability is a relation on User; filter through the profile's user.
+    where.user = {
+      availability: {
+        some: {
+          ...(dayNum !== undefined && !Number.isNaN(dayNum) ? { dayOfWeek: dayNum } : {}),
+          ...(slotVal ? { slot: slotVal as (typeof TIME_SLOTS)[number] } : {}),
+        },
+      },
+    };
+  }
 
   // Hide sitters blocked by (or who blocked) the current user.
   if (user) {
@@ -62,9 +88,13 @@ export default async function SittersPage({
     if (searchParams.maxRate) q.set("maxRate", searchParams.maxRate);
     if (searchParams.minRating) q.set("minRating", searchParams.minRating);
     if (searchParams.verified) q.set("verified", searchParams.verified);
+    if (searchParams.day) q.set("day", searchParams.day);
+    if (searchParams.slot) q.set("slot", searchParams.slot);
     q.set("page", String(p));
     return `/sitters?${q.toString()}`;
   };
+
+  const locale = getLocale();
 
   return (
     <div>
@@ -81,9 +111,13 @@ export default async function SittersPage({
             minRating: t.minRating,
             all: t.all,
             verifiedOnly: t.verifiedOnly,
+            availableDay: t.availableDay,
+            availableTime: t.availableTime,
             apply: t.apply,
             reset: t.reset,
           }}
+          dayOptions={DAY_LABELS[locale]}
+          slotOptions={TIME_SLOTS.map((s) => ({ value: s, label: SLOT_LABELS[locale][s] }))}
         />
       </div>
 
