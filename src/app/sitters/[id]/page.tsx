@@ -8,6 +8,7 @@ import { SitterProfileActions } from "@/components/SitterProfileActions";
 import { ReportBlockMenu } from "@/components/ReportBlockMenu";
 import { AvailabilityGrid } from "@/components/AvailabilityGrid";
 import { RecordSitterView } from "@/components/RecordSitterView";
+import { RatingBreakdown } from "@/components/RatingBreakdown";
 import { getLocale } from "@/lib/i18n";
 import type { TimeSlot } from "@/lib/availability";
 
@@ -15,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 // Public sitter profile: full details + reviews + connect actions.
 export default async function SitterDetailPage({ params }: { params: { id: string } }) {
-  const [profile, reviews, availability, user] = await Promise.all([
+  const [profile, reviews, ratingGroups, availability, user] = await Promise.all([
     prisma.sitterProfile.findUnique({
       where: { userId: params.id },
       include: { user: { select: { id: true, name: true, isPremium: true } } },
@@ -26,6 +27,12 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
       take: 20,
       include: { author: { select: { name: true } } },
     }),
+    // Full star distribution (all reviews, not just the latest page).
+    prisma.review.groupBy({
+      by: ["rating"],
+      where: { targetId: params.id },
+      _count: { rating: true },
+    }),
     prisma.availabilitySlot.findMany({
       where: { sitterId: params.id },
       select: { dayOfWeek: true, slot: true },
@@ -34,6 +41,14 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
   ]);
 
   if (!profile) notFound();
+
+  // Star distribution (1-5) and true total from the grouped counts.
+  const ratingCounts: Record<number, number> = {};
+  let ratingTotal = 0;
+  for (const g of ratingGroups) {
+    ratingCounts[g.rating] = g._count.rating;
+    ratingTotal += g._count.rating;
+  }
 
   const favorited =
     user?.role === "PARENT"
@@ -116,11 +131,15 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
 
       {/* Reviews */}
       <div className="ws-card p-6">
-        <h2 className="font-bold text-slate-900">후기 {reviews.length > 0 && `(${reviews.length})`}</h2>
-        {reviews.length === 0 ? (
+        <h2 className="font-bold text-slate-900">후기 {ratingTotal > 0 && `(${ratingTotal})`}</h2>
+        {ratingTotal === 0 ? (
           <p className="mt-3 text-sm text-slate-500">아직 후기가 없습니다.</p>
         ) : (
-          <ul className="mt-3 space-y-4">
+          <>
+            <div className="mt-4">
+              <RatingBreakdown avg={profile.ratingAvg} total={ratingTotal} counts={ratingCounts} />
+            </div>
+            <ul className="mt-5 space-y-4 border-t border-sky-50 pt-4">
             {reviews.map((r) => (
               <li key={r.id} className="border-b border-sky-50 pb-3 last:border-0">
                 <div className="flex items-center justify-between">
@@ -131,7 +150,8 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
                 <p className="mt-1 text-xs text-slate-400">{formatDate(r.createdAt)}</p>
               </li>
             ))}
-          </ul>
+            </ul>
+          </>
         )}
       </div>
     </div>
