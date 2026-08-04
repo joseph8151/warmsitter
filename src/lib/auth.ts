@@ -83,6 +83,8 @@ async function getUserFromDemoCookie(): Promise<User | null> {
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) throw new AuthError("Not authenticated");
+  // Suspended accounts are blocked from all mutating/authenticated actions.
+  if (user.suspended) throw new AuthError("정지된 계정입니다.", 403);
   return user;
 }
 

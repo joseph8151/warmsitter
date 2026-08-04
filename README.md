@@ -75,7 +75,11 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
   the counterparty confirms/declines (`Booking` model, `/bookings`,
   `/api/bookings`). Confirming writes the agreed rate/hours + matched sitter onto
   the linked job, so the existing payment flow can charge it. Blocks/notifications
-  apply. A daily cron (`/api/cron/booking-reminders`) reminds both parties ~a day
+  apply. A daily cron (`/api/cron/booking-reminders`) reminds both parties before a
+  confirmed booking and auto-completes past ones.
+- **Admin user management** — `/admin/users`: search by name/email, filter by role,
+  and **suspend / reinstate** accounts (`User.suspended`; suspended users are blocked
+  from all mutating actions in `requireUser`). Suspend/unsuspend is audit-logged. A daily cron (`/api/cron/booking-reminders`) reminds both parties ~a day
   ahead (once) and auto-completes past confirmed bookings.
 - **Receipts** — `/receipts` shows the user's payment history with a **CSV export**
   (`/api/receipts/export`, UTF-8 BOM for Excel). CSV serialization is a pure,

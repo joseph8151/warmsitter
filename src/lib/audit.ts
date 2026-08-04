@@ -15,7 +15,9 @@ export type AuditAction =
   | "REPORT_STATUS_CHANGED"
   | "USER_REPORTED"
   | "USER_BLOCKED"
-  | "USER_UNBLOCKED";
+  | "USER_UNBLOCKED"
+  | "USER_SUSPENDED"
+  | "USER_UNSUSPENDED";
 
 export async function audit(params: {
   actorId?: string | null;

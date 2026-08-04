@@ -191,6 +191,11 @@ model User {
   emailNotifications Boolean @default(true)
   pushNotifications  Boolean @default(true)
 
+  // Moderation: a suspended user is blocked from all mutating actions.
+  suspended       Boolean   @default(false)
+  suspendedAt     DateTime?
+  suspendedReason String?
+
   parentProfile ParentProfile?
   sitterProfile SitterProfile?
 
