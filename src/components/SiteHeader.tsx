@@ -3,14 +3,17 @@ import { BalanceBadge } from "./BalanceBadge";
 import { NotificationBell } from "./NotificationBell";
 import { MobileNav } from "./MobileNav";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { getCurrentUser } from "@/lib/auth";
 import { getDictionary, getLocale } from "@/lib/i18n";
+import { cookies } from "next/headers";
 
 // Server component shell; the BalanceBadge (client) reads live balance.
 export async function SiteHeader() {
   const user = await getCurrentUser();
   const locale = getLocale();
   const t = getDictionary(locale).nav;
+  const isDark = cookies().get("ws_theme")?.value === "dark";
 
   // Links shown in both the desktop nav and the mobile sheet.
   const links = [
@@ -59,6 +62,7 @@ export async function SiteHeader() {
           <div className="hidden sm:block">
             <LocaleSwitcher locale={locale} />
           </div>
+          <ThemeToggle initialDark={isDark} />
           {user && <NotificationBell />}
           <BalanceBadge />
           <div className="hidden md:block">

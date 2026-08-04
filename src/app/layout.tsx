@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { BillingProvider } from "@/components/BillingProvider";
 import { PwaManager } from "@/components/PwaManager";
 import { getDictionary, getLocale } from "@/lib/i18n";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   title: "warm sitter — Trusted babysitters, warmly matched",
@@ -35,8 +36,9 @@ export default function RootLayout({
 }) {
   const locale = getLocale();
   const dict = getDictionary(locale);
+  const isDark = cookies().get("ws_theme")?.value === "dark";
   return (
-    <html lang={locale}>
+    <html lang={locale} className={isDark ? "dark" : undefined}>
       <body>
         <a href="#main" className="skip-link">
           본문 바로가기

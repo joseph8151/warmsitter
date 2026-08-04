@@ -102,6 +102,10 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **i18n (한국어 / English)** — cookie-based locale (`src/lib/i18n.ts`) with a header
   language switcher. The public front door (nav, footer, landing, pricing, sitter
   search, login) is fully bilingual; `<html lang>` follows the locale.
+- **Dark mode** — cookie-based (`ws_theme`) `☀️/🌙` toggle, applied server-side on
+  `<html class="dark">` (no flash). Implemented centrally in `globals.css` by
+  remapping the app's color utilities under `.dark`, so it stays consistent without
+  per-component `dark:` variants.
 - **Security** — CSP + security headers, same-origin CSRF guard (middleware),
   rate limiting on sensitive endpoints, production-disabled demo login, private
   ID-document storage with signed URLs, signature-verified webhooks. See
