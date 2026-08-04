@@ -4,6 +4,7 @@ import { NotificationBell } from "./NotificationBell";
 import { MobileNav } from "./MobileNav";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import { UserMenu } from "./UserMenu";
 import { getCurrentUser } from "@/lib/auth";
 import { getDictionary, getLocale } from "@/lib/i18n";
 import { cookies } from "next/headers";
@@ -15,21 +16,30 @@ export async function SiteHeader() {
   const t = getDictionary(locale).nav;
   const isDark = cookies().get("ws_theme")?.value === "dark";
 
-  // Links shown in both the desktop nav and the mobile sheet.
-  const links = [
+  // Public marketing links: always inline in the top nav.
+  const publicLinks = [
     { href: "/sitters", label: t.findSitters },
     { href: "/jobs", label: t.jobs },
     { href: "/pricing", label: t.pricing },
-    ...(user?.role === "PARENT" ? [{ href: "/my-jobs", label: t.myJobs }] : []),
-    ...(user?.role === "PARENT" ? [{ href: "/favorites", label: t.favorites }] : []),
-    ...(user ? [{ href: "/dashboard", label: t.dashboard }] : []),
-    ...(user ? [{ href: "/chat", label: t.chat }] : []),
-    ...(user ? [{ href: "/bookings", label: t.bookings }] : []),
-    ...(user ? [{ href: "/interviews", label: t.interviews }] : []),
-    ...(user?.role === "SITTER" ? [{ href: "/earnings", label: t.earnings }] : []),
-    ...(user?.role === "SITTER" ? [{ href: "/profile", label: t.profile }] : []),
-    ...(user?.role === "ADMIN" ? [{ href: "/admin", label: t.admin }] : []),
   ];
+
+  // Personal links for logged-in users: tucked into the right-side user menu.
+  const personalLinks = user
+    ? [
+        { href: "/dashboard", label: t.dashboard },
+        ...(user.role === "PARENT" ? [{ href: "/my-jobs", label: t.myJobs }] : []),
+        ...(user.role === "PARENT" ? [{ href: "/favorites", label: t.favorites }] : []),
+        { href: "/chat", label: t.chat },
+        { href: "/bookings", label: t.bookings },
+        { href: "/interviews", label: t.interviews },
+        ...(user.role === "SITTER" ? [{ href: "/earnings", label: t.earnings }] : []),
+        ...(user.role === "SITTER" ? [{ href: "/profile", label: t.profile }] : []),
+        ...(user.role === "ADMIN" ? [{ href: "/admin", label: t.admin }] : []),
+      ]
+    : [];
+
+  // The mobile sheet lists everything.
+  const links = [...publicLinks, ...personalLinks];
 
   return (
     <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur">
@@ -44,16 +54,8 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={
-                l.href === "/admin"
-                  ? "font-semibold text-sky-600 hover:text-sky-700"
-                  : "hover:text-sky-600"
-              }
-            >
+          {publicLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-sky-600">
               {l.label}
             </Link>
           ))}
@@ -66,19 +68,13 @@ export async function SiteHeader() {
           <ThemeToggle initialDark={isDark} />
           {user && <NotificationBell />}
           <BalanceBadge />
-          <div className="hidden md:block">
-            {user ? (
-              <form action="/api/auth/signout" method="post">
-                <button type="submit" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-                  {t.logout}
-                </button>
-              </form>
-            ) : (
-              <Link href="/login" className="text-sm font-medium text-slate-500 hover:text-sky-600">
-                {t.login}
-              </Link>
-            )}
-          </div>
+          {user ? (
+            <UserMenu name={user.name} links={personalLinks} logoutLabel={t.logout} />
+          ) : (
+            <Link href="/login" className="hidden text-sm font-medium text-slate-500 hover:text-sky-600 md:block">
+              {t.login}
+            </Link>
+          )}
           <MobileNav
             links={links}
             loggedIn={Boolean(user)}
