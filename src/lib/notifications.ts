@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { hasActiveTicket } from "./billing";
+import { notify } from "./notify";
 
 // -----------------------------------------------------------------------------
 // Ticket / subscription expiry notification logic.
@@ -94,9 +95,17 @@ export async function runExpiryNotifications(now = new Date()): Promise<
   ];
 
   for (const n of out) {
-    // TODO: wire up email/push provider here.
-    // eslint-disable-next-line no-console
-    console.log(`[expiry] ${n.kind} -> ${n.email}`);
+    // In-app notification (also fans out to push + email via notify()).
+    await notify({
+      userId: n.userId,
+      type: "TICKET_EXPIRING",
+      title: n.kind === "ticket_expiring" ? "이용권이 곧 만료돼요 ⏳" : "이용권이 만료되었어요",
+      body:
+        n.kind === "ticket_expiring"
+          ? "기간이 곧 끝나요. 연장하고 무제한 이용을 이어가세요."
+          : "이용권이 만료되었습니다. 다시 구매하면 계속 이용할 수 있어요.",
+      link: "/pricing",
+    });
   }
   return out;
 }

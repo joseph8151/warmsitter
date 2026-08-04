@@ -1,6 +1,7 @@
 import type { NotificationType, Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "./prisma";
 import { sendPushToUser } from "./push";
+import { notificationEmailHtml, sendEmail, shouldEmail } from "./email";
 
 type Tx = Prisma.TransactionClient | PrismaClient;
 
@@ -37,4 +38,24 @@ export async function notify(
     body: params.body,
     link: params.link,
   }).catch(() => {});
+
+  // And, for important types, as an email (best-effort; no-op when unconfigured).
+  if (shouldEmail(params.type)) {
+    try {
+      const recipient = await prisma.user.findUnique({
+        where: { id: params.userId },
+        select: { email: true },
+      });
+      if (recipient?.email && !recipient.email.endsWith("@users.warmsitter")) {
+        await sendEmail({
+          to: recipient.email,
+          subject: params.title,
+          html: notificationEmailHtml({ title: params.title, body: params.body, link: params.link }),
+          text: params.body ?? params.title,
+        });
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
 }

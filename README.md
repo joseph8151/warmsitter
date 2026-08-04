@@ -49,7 +49,8 @@ tickets/credits, transaction fees, and premium subscriptions — built on Next.j
 - **In-app notifications** — a `Notification` model + `notify()` helper fire on new
   applications, accepts, interview proposals/responses, new messages, settlements, and
   verification results. Header bell (`/api/notifications`) polls every 30s with an
-  unread badge.
+  unread badge. `notify()` fans out to **in-app + web push + email** (email via Resend
+  for a curated set of important types; `src/lib/email.ts`, no-op without a key).
 - **Interview management** — `/interviews` lists proposals; sitters accept/decline and
   set a time (`/api/interviews/[id]/respond`).
 - **Search** — `/sitters` supports city / max-rate / min-rating / verified filters and

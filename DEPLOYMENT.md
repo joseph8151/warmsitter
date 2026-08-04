@@ -129,6 +129,21 @@ Set these env vars (Vercel + `.env`):
 4. Requires HTTPS (Vercel provides it). iOS 16.4+ supports web push only for
    installed PWAs (Add to Home Screen first).
 
+## 3d. Email (Resend)
+
+1. Create an account + API key at [resend.com](https://resend.com) and verify a
+   sending domain.
+2. Set env vars:
+
+   | Key | Value |
+   |-----|-------|
+   | `RESEND_API_KEY` | your Resend API key (server-only) |
+   | `EMAIL_FROM` | verified sender, e.g. `warm sitter <no-reply@yourdomain.com>` |
+
+3. `notify()` then also emails important events (applications, interviews,
+   settlements, verification results, expiry). High-frequency events (chat
+   messages) are intentionally not emailed. No key ⇒ email is skipped.
+
 ## 4. Cron (expiry notifications)
 
 `vercel.json` already registers a daily job:
