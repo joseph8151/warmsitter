@@ -5,6 +5,7 @@ import { isSupabaseAuthEnabled } from "./supabase/config";
 import { createSupabaseServerClient } from "./supabase/server";
 import { resolveSelfProvisionRole } from "./authz";
 import { isDemoLoginAllowed } from "./security";
+import { applyReferralForNewUser } from "./referral";
 
 // -----------------------------------------------------------------------------
 // Auth resolution.
@@ -64,7 +65,7 @@ async function getUserFromSupabase(): Promise<User | null> {
   }
 
   // 3) First-time login — provision a new user (+ role-appropriate profile).
-  return prisma.user.create({
+  const created = await prisma.user.create({
     data: {
       authId: authUser.id,
       email,
@@ -77,6 +78,15 @@ async function getUserFromSupabase(): Promise<User | null> {
         : {}),
     },
   });
+
+  // Best-effort: if this visitor arrived via a referral link, link it and grant
+  // the signup bonus. Must never block provisioning, so failures are swallowed.
+  try {
+    await applyReferralForNewUser(created.id);
+    return (await prisma.user.findUnique({ where: { id: created.id } })) ?? created;
+  } catch {
+    return created;
+  }
 }
 
 async function getUserFromDemoCookie(): Promise<User | null> {

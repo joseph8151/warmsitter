@@ -187,6 +187,16 @@ model User {
   // for fast "is premium?" checks in the matching flow.
   isPremium Boolean @default(false)
 
+  // ---- Referrals ("친구 초대") ----
+  // The user's own shareable code (generated on first visit to the invite page).
+  referralCode    String? @unique
+  // Who referred this user (set once, at first sign-up), + back-relation.
+  referredById    String?
+  referredBy      User?   @relation("Referrals", fields: [referredById], references: [id])
+  referrals       User[]  @relation("Referrals")
+  // Guards the one-time signup bonus so it's never granted twice.
+  referralAwarded Boolean @default(false)
+
   // Notification channel preferences (consent / spam control).
   emailNotifications Boolean @default(true)
   pushNotifications  Boolean @default(true)

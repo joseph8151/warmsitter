@@ -32,6 +32,22 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next({ request });
+
+  // Capture a referral code from `?ref=CODE` so it survives until the visitor
+  // signs up (applied once by applyReferralForNewUser on first provisioning).
+  const ref = request.nextUrl.searchParams.get("ref");
+  if (ref) {
+    const code = ref.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+    if (code.length >= 4) {
+      response.cookies.set("ws_ref", code, {
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      });
+    }
+  }
+
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return response;
 
   // Refresh the Supabase auth session and forward updated cookies.

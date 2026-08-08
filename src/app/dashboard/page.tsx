@@ -124,6 +124,21 @@ export default async function DashboardPage() {
 
       {checklist.length > 0 && <GettingStarted items={checklist} />}
 
+      {/* Referral invite banner */}
+      <Link
+        href="/invite"
+        className="ws-card flex items-center justify-between gap-4 bg-gradient-to-r from-sky-500 to-sky-400 p-5 text-white transition hover:from-sky-600 hover:to-sky-500"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🎁</span>
+          <div>
+            <p className="font-bold">친구 초대하고 크레딧 받기</p>
+            <p className="text-sm text-sky-50">친구가 가입하면 둘 다 크레딧을 받아요.</p>
+          </div>
+        </div>
+        <span className="shrink-0 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold">초대하기 →</span>
+      </Link>
+
       {/* Balance summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="크레딧 잔액" value={`${user.creditBalance}`} suffix="크레딧" />
