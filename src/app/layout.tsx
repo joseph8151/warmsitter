@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 import { BillingProvider } from "@/components/BillingProvider";
@@ -50,6 +51,11 @@ export default function RootLayout({
           </main>
           <footer className="border-t border-sky-100 bg-white/60 py-8 text-center text-sm text-slate-500">
             <p>{dict.footer.tagline}</p>
+            <nav className="mt-2">
+              <Link href="/faq" className="font-medium text-sky-600 hover:underline">
+                {locale === "en" ? "FAQ / Help" : "자주 묻는 질문"}
+              </Link>
+            </nav>
           </footer>
           <PwaManager />
         </BillingProvider>
