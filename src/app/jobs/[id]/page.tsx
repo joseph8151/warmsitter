@@ -48,7 +48,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
       <div className="ws-card p-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-extrabold text-slate-900">{job.title}</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
+            {job.urgent && <span className="ws-badge bg-rose-100 text-rose-600">🔥 급구</span>}
+            {job.title}
+          </h1>
           <span className="ws-badge bg-sky-100 text-sky-700">{STATUS_KO[job.status]}</span>
         </div>
         <p className="mt-3 whitespace-pre-wrap text-slate-700">{job.description ?? "상세 내용 없음"}</p>

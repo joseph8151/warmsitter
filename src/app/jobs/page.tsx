@@ -10,16 +10,18 @@ export const dynamic = "force-dynamic";
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: { city?: string };
+  searchParams: { city?: string; urgent?: string };
 }) {
   const user = await getCurrentUser();
+  const urgentOnly = searchParams.urgent === "1";
 
   const where: Prisma.JobPostWhereInput = { status: "OPEN" };
   if (searchParams.city) where.city = { contains: searchParams.city, mode: "insensitive" };
+  if (urgentOnly) where.urgent = true;
 
   const jobs = await prisma.jobPost.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ urgent: "desc" }, { createdAt: "desc" }],
     include: {
       parent: { select: { name: true } },
       _count: { select: { applications: true } },
@@ -60,10 +62,19 @@ export default async function JobsPage({
             className="mt-1 block w-56 rounded-lg border border-sky-200 px-3 py-2"
           />
         </label>
+        {urgentOnly && <input type="hidden" name="urgent" value="1" />}
         <button type="submit" className="ws-btn-primary text-sm">검색</button>
-        {searchParams.city && (
+        {(searchParams.city || urgentOnly) && (
           <Link href="/jobs" className="ws-btn-ghost text-sm">초기화</Link>
         )}
+        <Link
+          href={urgentOnly ? { pathname: "/jobs", query: searchParams.city ? { city: searchParams.city } : {} } : { pathname: "/jobs", query: { ...(searchParams.city ? { city: searchParams.city } : {}), urgent: "1" } }}
+          className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+            urgentOnly ? "bg-rose-500 text-white" : "bg-rose-50 text-rose-600 hover:bg-rose-100"
+          }`}
+        >
+          🔥 급구만
+        </Link>
       </form>
 
       {jobs.length === 0 ? (
@@ -94,9 +105,18 @@ export default async function JobsPage({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {jobs.map((j) => (
-            <Link key={j.id} href={`/jobs/${j.id}`} className="ws-card p-5 hover:bg-sky-50">
+            <Link
+              key={j.id}
+              href={`/jobs/${j.id}`}
+              className={`ws-card p-5 hover:bg-sky-50 ${j.urgent ? "ring-2 ring-rose-200" : ""}`}
+            >
               <div className="flex items-center justify-between gap-2">
-                <p className="font-bold text-slate-900">{j.title}</p>
+                <p className="flex items-center gap-1.5 font-bold text-slate-900">
+                  {j.urgent && (
+                    <span className="ws-badge bg-rose-100 text-rose-600">🔥 급구</span>
+                  )}
+                  {j.title}
+                </p>
                 <div className="flex shrink-0 items-center gap-1.5">
                   {appliedSet.has(j.id) && (
                     <span className="ws-badge bg-emerald-100 text-emerald-700">지원함</span>

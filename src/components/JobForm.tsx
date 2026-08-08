@@ -9,6 +9,7 @@ export function JobForm() {
   const [description, setDescription] = useState("");
   const [city, setCity] = useState("");
   const [hours, setHours] = useState("3");
+  const [urgent, setUrgent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,7 @@ export function JobForm() {
           description: description || undefined,
           city: city || undefined,
           hoursPerSession: Number(hours),
+          urgent,
         }),
       });
       window.location.href = `/jobs/${res.job.id}`;
@@ -69,6 +71,16 @@ export function JobForm() {
           className="w-28 rounded-lg border border-sky-200 px-3 py-2"
         />
       </div>
+      <label className="flex items-center gap-2 rounded-lg bg-sky-50 px-3 py-2 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={urgent}
+          onChange={(e) => setUrgent(e.target.checked)}
+          className="h-4 w-4 accent-rose-500"
+        />
+        <span className="font-semibold text-rose-600">🔥 급구</span>
+        <span className="text-slate-500">— 목록 상단에 눈에 띄게 표시돼요.</span>
+      </label>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button disabled={busy} type="submit" className="ws-btn-primary w-full">
         {busy ? "작성 중…" : "구인글 등록"}

@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const jobs = await prisma.jobPost.findMany({
       where: { status: "OPEN" },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ urgent: "desc" }, { createdAt: "desc" }],
       include: {
         parent: { select: { id: true, name: true } },
         _count: { select: { applications: true } },
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
         description: body.description,
         city: body.city,
         hoursPerSession: body.hoursPerSession ?? 3,
+        urgent: body.urgent ?? false,
         status: "OPEN",
       },
     });

@@ -398,6 +398,8 @@ model JobPost {
   description String?
   city       String?
   hoursPerSession Float @default(3)
+  // Parent flags a job as urgent ("급구") to surface it at the top of the board.
+  urgent     Boolean   @default(false)
   status     JobStatus @default(OPEN)
   // Sitter chosen for this job (after acceptance).
   matchedSitterId String?

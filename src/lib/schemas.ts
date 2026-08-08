@@ -148,6 +148,7 @@ export const createJobSchema = z.object({
   description: z.string().max(2000).optional(),
   city: z.string().max(80).optional(),
   hoursPerSession: z.number().positive().max(24).optional(),
+  urgent: z.boolean().optional(),
 });
 
 export const applyJobSchema = z.object({
