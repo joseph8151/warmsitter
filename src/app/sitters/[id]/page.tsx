@@ -147,6 +147,16 @@ export default async function SitterDetailPage({ params }: { params: { id: strin
                   <span className="text-sm text-amber-500">{"★".repeat(r.rating)}<span className="text-slate-200">{"★".repeat(5 - r.rating)}</span></span>
                 </div>
                 {r.comment && <p className="mt-1 text-sm text-slate-600">{r.comment}</p>}
+                {r.photoUrl && (
+                  <a href={r.photoUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={r.photoUrl}
+                      alt="후기 사진"
+                      className="h-24 w-24 rounded-lg object-cover transition hover:opacity-90"
+                    />
+                  </a>
+                )}
                 <p className="mt-1 text-xs text-slate-400">{formatDate(r.createdAt)}</p>
               </li>
             ))}

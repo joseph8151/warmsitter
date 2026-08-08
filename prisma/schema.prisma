@@ -496,6 +496,8 @@ model Review {
   target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
   rating    Int      // 1..5
   comment   String?
+  // Optional photo attached to the review (public URL). Reuses the worklog bucket.
+  photoUrl  String?
   createdAt DateTime @default(now())
 
   @@unique([jobId, authorId])

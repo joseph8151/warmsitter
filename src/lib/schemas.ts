@@ -43,6 +43,7 @@ export const reviewSchema = z.object({
   targetId: z.string().min(1),
   rating: z.number().int().min(1).max(5),
   comment: z.string().max(2000).optional(),
+  photoUrl: z.string().url().max(2000).optional(),
 });
 
 export const adminSettingsSchema = z.object({

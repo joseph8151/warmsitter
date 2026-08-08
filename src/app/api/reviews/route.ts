@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   try {
     const user = await requireUser();
     enforceRateLimit(req, "write", user.id);
-    const { jobId, targetId, rating, comment } = reviewSchema.parse(await req.json());
+    const { jobId, targetId, rating, comment, photoUrl } = reviewSchema.parse(await req.json());
 
     // AUTHORIZATION (see canReview / authz.test.ts): the caller must be a party
     // to the job, `targetId` must be the counterparty, and the job COMPLETED.
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     if (!decision.ok) return json({ error: decision.error }, decision.status);
 
     const review = await prisma.review.create({
-      data: { jobId, authorId: user.id, targetId, rating, comment },
+      data: { jobId, authorId: user.id, targetId, rating, comment, photoUrl },
     });
 
     // Keep the sitter's rating aggregate fresh when the target is a sitter.
