@@ -6,8 +6,10 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 type Provider = "google" | "apple";
 
 // Google + Apple social sign-in. Redirects to the provider, which returns to
-// /auth/callback to exchange the code for a session.
-export function OAuthButtons() {
+// /auth/callback to exchange the code for a session. An optional `role` is
+// carried through the callback so a first-time social sign-up can land as a
+// SITTER (otherwise brand-new social accounts default to PARENT).
+export function OAuthButtons({ role }: { role?: "PARENT" | "SITTER" }) {
   const [busy, setBusy] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,9 +18,11 @@ export function OAuthButtons() {
     setError(null);
     try {
       const supabase = getSupabaseBrowserClient();
+      const callback = new URL(`${window.location.origin}/auth/callback`);
+      if (role) callback.searchParams.set("role", role.toLowerCase());
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: callback.toString() },
       });
       if (error) throw error;
       // On success the browser is redirected away; nothing else to do here.

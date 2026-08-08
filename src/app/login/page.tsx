@@ -12,11 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: { error?: string; as?: string };
 }) {
   const supabaseOn = isSupabaseAuthEnabled;
   const demoOn = isDemoLoginAllowed();
   const t = getDictionary(getLocale()).auth;
+  const asSitter = searchParams.as === "sitter";
 
   // Only expose the user list when the demo picker is actually usable.
   const users = demoOn
@@ -30,9 +31,11 @@ export default async function LoginPage({
   return (
     <div className="mx-auto max-w-md">
       <h1 className="text-2xl font-extrabold text-slate-900">
-        {supabaseOn ? t.loginTitle : t.demoTitle}
+        {!supabaseOn ? t.demoTitle : asSitter ? t.sitterJoinTitle : t.loginTitle}
       </h1>
-      <p className="mt-1 text-slate-600">{supabaseOn ? t.loginSubtitle : t.demoSubtitle}</p>
+      <p className="mt-1 text-slate-600">
+        {!supabaseOn ? t.demoSubtitle : asSitter ? t.sitterJoinSubtitle : t.loginSubtitle}
+      </p>
 
       {searchParams.error === "oauth" && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -42,7 +45,7 @@ export default async function LoginPage({
 
       <div className="mt-6">
         {supabaseOn ? (
-          <AuthForm />
+          <AuthForm sitter={asSitter} />
         ) : !demoOn ? (
           <div className="ws-card p-6 text-center text-slate-500">
             로그인이 구성되지 않았습니다. Supabase 인증 환경변수를 설정해주세요.

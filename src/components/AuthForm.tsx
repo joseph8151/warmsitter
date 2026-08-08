@@ -8,12 +8,14 @@ type Mode = "signin" | "signup";
 
 // Supabase email/password auth. On success the server session cookie is set and
 // getCurrentUser() provisions the matching Prisma user just-in-time.
-export function AuthForm() {
-  const [mode, setMode] = useState<Mode>("signin");
+// When `sitter` is set (the "join as a sitter" path), the form opens straight on
+// sign-up with the SITTER role pre-selected so a sitter can register in one step.
+export function AuthForm({ sitter = false }: { sitter?: boolean }) {
+  const [mode, setMode] = useState<Mode>(sitter ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"PARENT" | "SITTER">("PARENT");
+  const [role, setRole] = useState<"PARENT" | "SITTER">(sitter ? "SITTER" : "PARENT");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -53,7 +55,14 @@ export function AuthForm() {
 
   return (
     <div className="ws-card space-y-4 p-6">
-      <OAuthButtons />
+      {sitter && (
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 rounded-lg bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700">
+          <span>🆓 무료 가입</span>
+          <span>🕒 원하는 시간에</span>
+          <span>🔒 안전 정산</span>
+        </div>
+      )}
+      <OAuthButtons role={mode === "signup" ? role : undefined} />
       <div className="relative flex items-center justify-center py-1">
         <span className="absolute inset-x-0 top-1/2 h-px bg-slate-200" />
         <span className="relative bg-white px-3 text-xs text-slate-400">또는 이메일로</span>

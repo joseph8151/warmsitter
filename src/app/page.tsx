@@ -104,7 +104,7 @@ export default function HomePage() {
           <p className="mt-1 max-w-xl text-sky-50">{t.sitterCtaDesc}</p>
         </div>
         <Link
-          href="/login"
+          href="/login?as=sitter"
           className="shrink-0 rounded-full bg-white px-6 py-3 font-bold text-sky-600 shadow-card hover:bg-sky-50"
         >
           {t.sitterCtaButton}

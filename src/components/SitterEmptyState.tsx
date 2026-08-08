@@ -29,7 +29,7 @@ export function SitterEmptyState({
           <p className="mt-2 max-w-md text-slate-600">{labels.noneDesc}</p>
         </div>
         <Link
-          href="/login"
+          href="/login?as=sitter"
           className="rounded-full bg-sky-500 px-6 py-3 font-bold text-white shadow-card hover:bg-sky-600"
         >
           {labels.noneCta}

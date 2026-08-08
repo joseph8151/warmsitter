@@ -119,6 +119,11 @@ const dictionaries = {
       demoTitle: "데모 로그인",
       loginSubtitle: "이메일로 로그인하거나 회원가입하세요.",
       demoSubtitle: "인증은 데모용 스텁입니다. 아래에서 사용자를 선택해 로그인하세요.",
+      sitterJoinTitle: "시터로 무료 가입",
+      sitterJoinSubtitle: "몇 분이면 끝나요. 등록·프로필·검색 노출 모두 무료예요.",
+      sitterBenefit1: "🆓 무료 가입",
+      sitterBenefit2: "🕒 원하는 시간에",
+      sitterBenefit3: "🔒 안전 정산",
     },
   },
   en: {
@@ -228,6 +233,11 @@ const dictionaries = {
       demoTitle: "Demo login",
       loginSubtitle: "Log in with your email or sign up.",
       demoSubtitle: "Auth is a demo stub. Pick a user below to log in.",
+      sitterJoinTitle: "Join free as a sitter",
+      sitterJoinSubtitle: "Takes just a few minutes. Registration, profile, and search visibility are all free.",
+      sitterBenefit1: "🆓 Free to join",
+      sitterBenefit2: "🕒 Your own schedule",
+      sitterBenefit3: "🔒 Safe payouts",
     },
   },
 } as const;
