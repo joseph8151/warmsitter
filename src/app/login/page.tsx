@@ -9,7 +9,11 @@ export const dynamic = "force-dynamic";
 
 // Real Supabase auth when configured; demo user-picker only when demo login is
 // allowed (never in production / when real auth is on).
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const supabaseOn = isSupabaseAuthEnabled;
   const demoOn = isDemoLoginAllowed();
   const t = getDictionary(getLocale()).auth;
@@ -29,6 +33,12 @@ export default async function LoginPage() {
         {supabaseOn ? t.loginTitle : t.demoTitle}
       </h1>
       <p className="mt-1 text-slate-600">{supabaseOn ? t.loginSubtitle : t.demoSubtitle}</p>
+
+      {searchParams.error === "oauth" && (
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          소셜 로그인에 실패했어요. 다시 시도해주세요.
+        </p>
+      )}
 
       <div className="mt-6">
         {supabaseOn ? (

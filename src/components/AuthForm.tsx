@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { OAuthButtons } from "./OAuthButtons";
 
 type Mode = "signin" | "signup";
 
@@ -51,7 +52,13 @@ export function AuthForm() {
   }
 
   return (
-    <form onSubmit={submit} className="ws-card space-y-3 p-6">
+    <div className="ws-card space-y-4 p-6">
+      <OAuthButtons />
+      <div className="relative flex items-center justify-center py-1">
+        <span className="absolute inset-x-0 top-1/2 h-px bg-slate-200" />
+        <span className="relative bg-white px-3 text-xs text-slate-400">또는 이메일로</span>
+      </div>
+      <form onSubmit={submit} className="space-y-3">
       <div className="flex gap-2 rounded-full bg-sky-50 p-1">
         {(["signin", "signup"] as Mode[]).map((m) => (
           <button
@@ -121,6 +128,7 @@ export function AuthForm() {
       <button disabled={busy} type="submit" className="ws-btn-primary w-full">
         {busy ? "처리 중…" : mode === "signin" ? "로그인" : "회원가입"}
       </button>
-    </form>
+      </form>
+    </div>
   );
 }
