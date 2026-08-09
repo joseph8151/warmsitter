@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "./brand/Logo";
 import { BalanceBadge } from "./BalanceBadge";
 import { NotificationBell } from "./NotificationBell";
 import { MobileNav } from "./MobileNav";
@@ -42,20 +43,15 @@ export async function SiteHeader() {
   const links = [...publicLinks, ...personalLinks];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-sky-100 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-slate-100/80 bg-white/75 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-sky-500 text-lg text-white shadow-card">
-            ☀️
-          </span>
-          <span className="text-lg font-extrabold tracking-tight text-sky-700">
-            warm<span className="text-sunny-500">sitter</span>
-          </span>
+        <Link href="/" aria-label="warm sitter 홈" className="transition hover:opacity-90">
+          <Logo markClass="h-9 w-9" />
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
           {publicLinks.map((l) => (
-            <Link key={l.href} href={l.href} className="hover:text-sky-600">
+            <Link key={l.href} href={l.href} className="relative transition hover:text-sky-600">
               {l.label}
             </Link>
           ))}
@@ -71,7 +67,7 @@ export async function SiteHeader() {
           {user ? (
             <UserMenu name={user.name} links={personalLinks} logoutLabel={t.logout} />
           ) : (
-            <Link href="/login" className="hidden text-sm font-medium text-slate-500 hover:text-sky-600 md:block">
+            <Link href="/login" className="ws-btn-ghost hidden px-4 py-2 text-sm md:inline-flex">
               {t.login}
             </Link>
           )}

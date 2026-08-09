@@ -7,6 +7,8 @@ import { useBilling } from "./BillingProvider";
 import { api } from "@/lib/client/api";
 import { won } from "@/lib/format";
 import { FavoriteButton } from "./FavoriteButton";
+import { Avatar } from "./brand/Avatar";
+import { BadgeCheckIcon, StarIcon } from "./brand/Icons";
 
 interface Sitter {
   id: string;
@@ -59,23 +61,21 @@ export function SitterCard({ sitter, favorited = false }: { sitter: Sitter; favo
   }
 
   return (
-    <div className="ws-card flex flex-col p-5">
+    <div className="ws-card ws-card-hover flex flex-col p-5">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full bg-sky-100 text-2xl">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-2 ring-white shadow-soft">
             {sitter.photoUrl ? (
               <Image src={sitter.photoUrl} alt={sitter.name} fill sizes="48px" className="object-cover" />
             ) : (
-              sitter.name.charAt(0)
+              <Avatar name={sitter.name} className="h-12 w-12" />
             )}
           </div>
           <div>
-            <Link href={`/sitters/${sitter.id}`} className="font-bold text-slate-900 hover:text-sky-600">
+            <Link href={`/sitters/${sitter.id}`} className="inline-flex items-center gap-1.5 font-bold text-ink-900 hover:text-sky-600">
               {sitter.name}
               {sitter.isPremium && (
-                <span className="ml-2 ws-badge bg-gradient-to-r from-sunny-300 to-sunny-400 text-slate-900">
-                  ★
-                </span>
+                <span className="ws-badge bg-gradient-to-r from-sunny-300 to-sunny-400 text-ink-900">★</span>
               )}
             </Link>
             <p className="text-sm text-slate-500">
@@ -84,7 +84,11 @@ export function SitterCard({ sitter, favorited = false }: { sitter: Sitter; favo
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {sitter.verified && <span className="ws-badge bg-sky-100 text-sky-700">✔ 인증</span>}
+          {sitter.verified && (
+            <span className="ws-badge bg-sky-50 text-sky-700">
+              <BadgeCheckIcon className="h-3.5 w-3.5" /> 인증
+            </span>
+          )}
           <FavoriteButton sitterId={sitter.id} initialFavorited={favorited} className="h-8 w-8 text-base" />
         </div>
       </div>
@@ -93,10 +97,10 @@ export function SitterCard({ sitter, favorited = false }: { sitter: Sitter; favo
         {sitter.bio || "따뜻하게 아이를 돌봐드려요."}
       </Link>
 
-      <div className="mt-3 flex items-center justify-between">
+      <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
         <span className="text-lg font-extrabold text-sky-600">{won(sitter.hourlyRate)}<span className="text-sm font-medium text-slate-400">/시간</span></span>
-        <span className="text-sm text-amber-500">
-          ⭐ {sitter.ratingAvg.toFixed(1)} <span className="text-slate-400">({sitter.ratingCount})</span>
+        <span className="inline-flex items-center gap-1 text-sm font-semibold text-sunny-600">
+          <StarIcon className="h-4 w-4" /> {sitter.ratingAvg.toFixed(1)} <span className="font-normal text-slate-400">({sitter.ratingCount})</span>
         </span>
       </div>
 
