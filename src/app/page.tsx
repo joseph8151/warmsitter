@@ -91,6 +91,19 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ---------------------------------------------------- Promise ribbon */}
+      <section className="-mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm font-semibold text-slate-500">
+        {[t.promise1, t.promise2, t.promise3, t.promise4].map((p, i) => (
+          <span key={p} className="inline-flex items-center gap-3">
+            {i > 0 && <span className="h-1 w-1 rounded-full bg-sky-300" />}
+            <span className="inline-flex items-center gap-1.5">
+              <BadgeCheckIcon className="h-4 w-4 text-sky-500" />
+              {p}
+            </span>
+          </span>
+        ))}
+      </section>
+
       {/* --------------------------------------------------------------- Stats */}
       <section className="ws-card ws-dots overflow-hidden p-8">
         <p className="text-center text-sm font-semibold text-slate-500">{t.statImpact}</p>
@@ -252,11 +265,33 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* --------------------------------------------------------- FAQ teaser */}
+      <section className="relative overflow-hidden rounded-xl4 border border-slate-100 bg-gradient-to-br from-white to-sky-50 p-8 md:p-10">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full bg-sky-200/40 blur-3xl" />
+        <div className="relative flex flex-col items-start gap-5 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white text-sky-600 shadow-soft">
+              <SparkleIcon className="h-6 w-6" />
+            </span>
+            <div>
+              <span className="ws-eyebrow">{t.faqKicker}</span>
+              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-ink-900">{t.faqTitle}</h2>
+              <p className="mt-1 max-w-md text-slate-600">{t.faqDesc}</p>
+            </div>
+          </div>
+          <Link href="/faq" className="ws-btn-ghost shrink-0">
+            {t.faqCta}
+            <ArrowRightIcon className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* -------------------------------------------------------- Final CTA */}
-      <section className="text-center">
-        <h2 className="text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">{t.finalTitle}</h2>
-        <p className="mx-auto mt-3 max-w-md text-slate-600">{t.finalDesc}</p>
-        <div className="mt-7 flex justify-center gap-3">
+      <section className="relative text-center">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sunny-300/20 blur-3xl" />
+        <h2 className="relative text-3xl font-extrabold tracking-tight text-ink-900 md:text-4xl">{t.finalTitle}</h2>
+        <p className="relative mx-auto mt-3 max-w-md text-slate-600">{t.finalDesc}</p>
+        <div className="relative mt-7 flex justify-center gap-3">
           <Link href="/sitters" className="ws-btn-primary text-base">
             {t.findCta}
             <ArrowRightIcon className="h-5 w-5" />
