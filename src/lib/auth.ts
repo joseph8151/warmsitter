@@ -1,0 +1,118 @@
+import { cookies } from "next/headers";
+import { prisma } from "./prisma";
+import type { User } from "@prisma/client";
+import { isSupabaseAuthEnabled } from "./supabase/config";
+import { createSupabaseServerClient } from "./supabase/server";
+import { resolveSelfProvisionRole } from "./authz";
+import { isDemoLoginAllowed } from "./security";
+import { applyReferralForNewUser } from "./referral";
+
+// -----------------------------------------------------------------------------
+// Auth resolution.
+//
+// When Supabase is configured (NEXT_PUBLIC_SUPABASE_URL + ANON_KEY), the current
+// user is derived from the Supabase Auth session, and the matching Prisma `User`
+// row is provisioned just-in-time (linked by authId, then by email so seeded
+// users attach on first login).
+//
+// When Supabase is NOT configured, we fall back to the demo stub: a `ws_uid`
+// cookie (set by the demo login page) or the DEV_USER_ID env var. This keeps the
+// app runnable locally without any Supabase project.
+// -----------------------------------------------------------------------------
+
+export async function getCurrentUser(): Promise<User | null> {
+  if (isSupabaseAuthEnabled) {
+    const supabaseUser = await getUserFromSupabase();
+    if (supabaseUser) return supabaseUser;
+  }
+  // SECURITY: the `ws_uid` cookie lets a request name ANY user by id, so it must
+  // only ever be honored where demo login is explicitly allowed (local dev, or
+  // an opt-in ALLOW_DEMO_LOGIN). In production with real auth it is never
+  // trusted — otherwise anyone could impersonate any account (incl. ADMIN) by
+  // sending `Cookie: ws_uid=<victimId>` with no Supabase session.
+  if (!isDemoLoginAllowed()) return null;
+  return getUserFromDemoCookie();
+}
+
+async function getUserFromSupabase(): Promise<User | null> {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+  if (!authUser) return null;
+
+  const email = authUser.email ?? `${authUser.id}@users.warmsitter`;
+  const name =
+    (authUser.user_metadata?.name as string | undefined) ??
+    email.split("@")[0];
+
+  // SECURITY: user_metadata is writable by the end user themselves
+  // (supabase.auth.updateUser), so roles must never be trusted from it. Clamp to
+  // PARENT/SITTER; ADMIN is only assigned out-of-band. (See authz.test.ts.)
+  const desiredRole: User["role"] = resolveSelfProvisionRole(authUser.user_metadata?.role);
+
+  // 1) Already linked by Supabase auth id.
+  const byAuthId = await prisma.user.findUnique({ where: { authId: authUser.id } });
+  if (byAuthId) return byAuthId;
+
+  // 2) Existing (e.g. seeded) user with the same email — link it.
+  const byEmail = await prisma.user.findUnique({ where: { email } });
+  if (byEmail) {
+    return prisma.user.update({
+      where: { id: byEmail.id },
+      data: { authId: authUser.id },
+    });
+  }
+
+  // 3) First-time login — provision a new user (+ role-appropriate profile).
+  const created = await prisma.user.create({
+    data: {
+      authId: authUser.id,
+      email,
+      name,
+      role: desiredRole,
+      ...(desiredRole === "SITTER"
+        ? { sitterProfile: { create: {} } }
+        : desiredRole === "PARENT"
+        ? { parentProfile: { create: {} } }
+        : {}),
+    },
+  });
+
+  // Best-effort: if this visitor arrived via a referral link, link it and grant
+  // the signup bonus. Must never block provisioning, so failures are swallowed.
+  try {
+    await applyReferralForNewUser(created.id);
+    return (await prisma.user.findUnique({ where: { id: created.id } })) ?? created;
+  } catch {
+    return created;
+  }
+}
+
+async function getUserFromDemoCookie(): Promise<User | null> {
+  const uid = cookies().get("ws_uid")?.value ?? process.env.DEV_USER_ID;
+  if (!uid) return null;
+  return prisma.user.findUnique({ where: { id: uid } });
+}
+
+export async function requireUser(): Promise<User> {
+  const user = await getCurrentUser();
+  if (!user) throw new AuthError("Not authenticated");
+  // Suspended accounts are blocked from all mutating/authenticated actions.
+  if (user.suspended) throw new AuthError("정지된 계정입니다.", 403);
+  return user;
+}
+
+export async function requireRole(roles: User["role"][]): Promise<User> {
+  const user = await requireUser();
+  if (!roles.includes(user.role)) throw new AuthError("Forbidden", 403);
+  return user;
+}
+
+export class AuthError extends Error {
+  status: number;
+  constructor(message: string, status = 401) {
+    super(message);
+    this.status = status;
+  }
+}
